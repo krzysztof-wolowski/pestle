@@ -13,23 +13,23 @@ function buildSourceFilesReport($lines)
     {
         if($line[0] == '#' && $line[1] != '#')
         {
-            $chapter = trim($line); 
+            $chapter = trim($line);
             $report[$chapter] = [];
-        }        
+        }
         if(!$chapter){ continue; }
-        
+
         if(preg_match('%^(    )|(\t)%', $line)){
             $parsingCode = true;
-            $code[] = $line;            
+            $code[] = $line;
         }
-        
+
         if($parsingCode && !preg_match('%^(    )|(\t)%', $line)) {
             $report[$chapter][] = implode('', $code);
             $parsingCode = false;
             $code = [];
-        }        
+        }
     }
-    return $report;    
+    return $report;
 }
 
 function buildSourceFiles($lines)
@@ -51,11 +51,11 @@ function buildSourceFiles($lines)
         foreach($samples as $sample)
         {
             $j++;
-            $pathCodeFile = $path . '/' . $j . '.txt';            
+            $pathCodeFile = $path . '/' . $j . '.txt';
             file_put_contents($pathCodeFile, $sample);
             \Pulsestorm\Pestle\Library\output("Creating $pathCodeFile");
-        }                
-    }    
+        }
+    }
 }
 
 /**
@@ -74,8 +74,8 @@ function pestle_cli($argv, $options)
     {
         define('SRC','src');
     }
-    
-    
+
+
     echo `mkdir -p output`;
     $files = glob(SRC . '/*.md');
     if(count($files) === 0)
@@ -83,8 +83,8 @@ function pestle_cli($argv, $options)
         \Pulsestorm\Pestle\Library\output("No " . SRC . "/, bailing");
         exit;
     }
-    
-    $chapters = [   
+
+    $chapters = [
         SRC . '/chapter-0-introduction.md',
         SRC . '/chapter-1-blocks-template-php.md',
         SRC . '/chapter-2-layout-xml.md',
@@ -100,7 +100,7 @@ function pestle_cli($argv, $options)
     $appendices = [
         SRC . '/appendix-areas.md',
         SRC . '/appendix-autoload.md',
-        SRC . '/appendix-cache.md',        
+        SRC . '/appendix-cache.md',
         SRC . '/appendix-cli.md',
         SRC . '/appendix-components.md',
         SRC . '/appendix-curl.md',
@@ -110,9 +110,9 @@ function pestle_cli($argv, $options)
         SRC . '/appendix-interfaces.md',
         SRC . '/appendix-magento-modes.md',
         SRC . '/appendix-unix-find.md',
-        SRC . '/appendix-view-source.md',                                         
+        SRC . '/appendix-view-source.md',
     ];
-    
+
     $raw = [];
     foreach($chapters as $file)
     {
@@ -121,10 +121,10 @@ function pestle_cli($argv, $options)
             \Pulsestorm\Pestle\Library\output($file . ' does not exist in src/, bailing');
             exit;
         }
-        
+
         $raw[] = file_get_contents($file);
     }
-    
+
     $chapterAppendix = ["# Appendix\n\n"];
     foreach($appendices as $appendix)
     {
@@ -132,41 +132,41 @@ function pestle_cli($argv, $options)
         {
             \Pulsestorm\Pestle\Library\output($file . ' does not exist in src/, bailing');
             exit;
-        }    
+        }
         $chapterAppendix[] = file_get_contents($appendix);
     }
     $raw[] = implode("\n\n", $chapterAppendix);
     $raw = implode("\n\n", $raw);
-    
-    
+
+
     $raw = preg_replace('/(^#[^#])/sim', ('\pagebreak' . "\n" . '$1'), $raw);
     file_put_contents('/tmp/working.md', $raw);
-    
-    $lines   = file('/tmp/working.md');    
+
+    $lines   = file('/tmp/working.md');
     buildSourceFiles($lines);
-    
+
     echo `pandoc /tmp/working.md --toc -s -o output/No-Frills-Magento-2-Layout.tex`;
-    // echo `pandoc /tmp/working.md -V documentclass=book -V classoption=oneside --template nofrills --toc -s --listings -o output/No-Frills-Magento-2-Layout.tex`;    
-    // echo `pandoc /tmp/working.md -o new.pdf --from markdown --template eisvogel --listings --toc -s -o output/No-Frills-Magento-2-Layout.tex`;            
+    // echo `pandoc /tmp/working.md -V documentclass=book -V classoption=oneside --template nofrills --toc -s --listings -o output/No-Frills-Magento-2-Layout.tex`;
+    // echo `pandoc /tmp/working.md -o new.pdf --from markdown --template eisvogel --listings --toc -s -o output/No-Frills-Magento-2-Layout.tex`;
     //     echo `pandoc output/No-Frills-Magento-2-Layout.tex -V documentclass=book -V classoption=oneside --template nofrills --toc -s --listings --latex-engine=xelatex -o output/No-Frills-Magento-2-Layout.pdf `;
     echo `pandoc output/No-Frills-Magento-2-Layout.tex -V documentclass=book -V classoption=oneside --template nofrills --toc -s --listings --pdf-engine=xelatex -o output/No-Frills-Magento-2-Layout.pdf `;
     echo `pandoc /tmp/working.md --toc -s -o output/No-Frills-Magento-2-Layout.html `;
     echo `pandoc /tmp/working.md --toc -s -o output/No-Frills-Magento-2-Layout.epub`;
-    echo `pandoc /tmp/working.md --toc -s -o output/No-Frills-Magento-2-Layout.epub3`;                
-    
+    echo `pandoc /tmp/working.md --toc -s -o output/No-Frills-Magento-2-Layout.epub3`;
+
     //echo `tar -cvf output/Pulsestorm_Nofrillslayout.tar -C /Users/alanstorm/Sites/magento-2-1-0.dev/project-community-edition app/code/Pulsestorm/Nofrillslayout`;
     $date = date('Y-m-d-H-i-s',time());
     $zip = $date . '.zip';
     echo `zip -r $zip output`;
-    
+
     $result     = `wc -w /tmp/working.md`;
     $parts      = preg_split('%\s{1,1000}%', trim($result));
     $word_count = array_pop($parts);
-    
+
     $word_count = preg_split('%\s{1,100}%', trim($result));
-        
+
     $word_count = array_shift($word_count);
-    
+
     $cmd = "echo \"$date $word_count\" >> wordcount.txt";
     `$cmd`;
     readfile('wordcount.txt');
@@ -191,17 +191,17 @@ function generateGhostscriptCombine($pdfs, $outputFile)
         return realpath($pdf);
     }, $pdfs);
     $cmd = getPathToGhostScript() . ' -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite ' .
-        '-dPDFSETTINGS=/prepress -sOutputFile=' . $outputFile . ' ' . 
-        implode(' ', $pdfs);    
-        
-    return $cmd;        
+        '-dPDFSETTINGS=/prepress -sOutputFile=' . $outputFile . ' ' .
+        implode(' ', $pdfs);
+
+    return $cmd;
 }
 
 function runCommand($cmd)
 {
     echo "Running $cmd","\n";
     $results = `$cmd`;
-    echo $results,"\n";    
+    echo $results,"\n";
     return $results;
 }
 
@@ -221,7 +221,7 @@ function combinePdfs($pdfs, $outputFile)
 function pestle_cli($argv, $options)
 {
     $outputFile = isset($options['output-file']) ? $options['output-file'] : '/tmp/output.pdf';
-    $pdfs       = explode(',', $argv['pdfs']);    
+    $pdfs       = explode(',', $argv['pdfs']);
     $results    = combinePdfs($pdfs, $outputFile);
 }
 }
@@ -238,11 +238,11 @@ function pestle_cli($argv)
 function format_xml($xml_string)
 {
     $dom = new DomDocument();
-    $dom->preserveWhitespace = false;			
+    $dom->preserveWhitespace = false;
     $dom->loadXml($xml_string);
-    $dom->formatOutput		= true;			
+    $dom->formatOutput		= true;
     $output = $dom->saveXml();
-    
+
     return $output;
 }
 }
@@ -578,10 +578,10 @@ function getUrlsFromHtml($html)
     @$xml->loadHtml($html);
     $xml = $xml->saveXml();
     $xml = str_replace('xmlns="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/xhtml"',
-    'xmlns="http://www.w3.org/1999/xhtml"', $xml);    
+    'xmlns="http://www.w3.org/1999/xhtml"', $xml);
     $xml = str_replace('xml:lang="en" lang="en" xml:lang="en"',
     'xml:lang="en" lang="en"',$xml);
-    $xml = simplexml_load_string(trim($xml));    
+    $xml = simplexml_load_string(trim($xml));
     $xml->registerXpathNamespace('e','http://www.w3.org/1999/xhtml');
     $nodes = $xml->xpath('//e:a');
     foreach($nodes as $node)
@@ -595,7 +595,7 @@ function fetchAllUrls()
     $urls = array();
     $urls['archive']        = getUrlsFromHtml(getUrl('http://alanstorm.com/archives'));
     $urls['magento']        = getUrlsFromHtml(getUrl('http://alanstorm.com/category/magento'));
-    $urls['magento-2']      = getUrlsFromHtml(getUrl('http://alanstorm.com/category/magento-2'));    
+    $urls['magento-2']      = getUrlsFromHtml(getUrl('http://alanstorm.com/category/magento-2'));
     $urls['oro']            = getUrlsFromHtml(getUrl('http://alanstorm.com/category/orocrm'));
     $urls['sugarcrm']       = getUrlsFromHtml(getUrl('http://alanstorm.com/category/sugarcrm'));
     $urls['drupal']         = getUrlsFromHtml(getUrl('http://alanstorm.com/category/drupal'));
@@ -618,11 +618,11 @@ function normalizeUrls($urls)
             $url = str_replace('http://www.alanstorm.com',  '', $url);
             $array[$key] = $url;
         }
-        
+
         $urls[$type] = $array;
     }
     return $urls;
-    
+
 }
 
 function removeIrrelevantDataFromUrls($urls)
@@ -630,7 +630,7 @@ function removeIrrelevantDataFromUrls($urls)
     $to_remove = array('/atom','/archives','/project','/contact','/links','/projects',
     '/site/contact','/about'
     );
-    
+
     //URLs I don't want to categorize now
     $to_remove = array_merge($to_remove, array(
         "/commerce-bug-2-5-graphviz",
@@ -726,7 +726,7 @@ function removeIrrelevantDataFromUrls($urls)
         "/the_two_futures_for_javascript_libraries",
         "/magento_commerce_bug_session_based_toggles",
         "/setting_up_a_zend_application_in_a_subdirectory",
-        "/if_it_aint_broke_make_it_slower_so_we_can_keep_busy", 
+        "/if_it_aint_broke_make_it_slower_so_we_can_keep_busy",
         '/methods_objective_c_deeply_weird',
         '/station_identification_2014',
         '/magento_ultimate_module_creator_review',
@@ -740,31 +740,31 @@ function removeIrrelevantDataFromUrls($urls)
     {
         $new = array();
         foreach($array as $key=>$url)
-        {            
+        {
             if(strpos($url, '/category') === 0)
             {
                 continue;
             }
-            
+
             if(strpos($url, 'http') === 0)
             {
                 continue;
             }
-            
+
             if(!$url)
             {
                 continue;
             }
-            
+
             if(in_array($url, $to_remove))
             {
                 continue;
             }
-            
+
             if($url[0] == '#')
             {
                 continue;
-            }            
+            }
             $new[] = $url;
         }
         $urls[$type] = $new;
@@ -773,7 +773,7 @@ function removeIrrelevantDataFromUrls($urls)
 }
 
 /**
-* BETA: Used to scan my old pre-Wordpress archives for missing pages. 
+* BETA: Used to scan my old pre-Wordpress archives for missing pages.
 *
 * @command pulsestorm:orphan-content
 */
@@ -786,7 +786,7 @@ function pestle_cli($argv)
 
     $urls_archive = $urls['archive'];
     unset($urls['archive']);
-    
+
     $missing = $urls_archive;
     foreach($urls as $key=>$urls)
     {
@@ -822,7 +822,7 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 * @argument entity Please Enter the Entity [World]
 */
 function pestle_cli($argv, $options)
-{    
+{
     \Pulsestorm\Pestle\Library\output($argv['greeting'] . " " . $argv['entity']);
     if($options['explain'])
     {
@@ -867,7 +867,7 @@ function pestle_cli($argv, $options)
         {
             $person = 'Soldier';
         }
-        
+
     }
     \Pulsestorm\Pestle\Library\output("Hello $person");
 }
@@ -1644,27 +1644,27 @@ function getPackageAndModuleNameFromListingXmlFile($file)
     }
     $parts = explode('app/code/', $file);
     $parts = explode('/', array_pop($parts));
-    
+
     return [$parts[0], $parts[1]];
 }
 
 function getGridIdFromListingXmlFile($xml)
 {
     $stuff = pathinfo($xml);
-    return $stuff['filename'];    
+    return $stuff['filename'];
 }
 
 function generatePageActionsClassFromListingXmlFileAndXml($file, $xml)
 {
     list($package, $moduleName) = getPackageAndModuleNameFromListingXmlFile($file);
     $gridId                     = getGridIdFromListingXmlFile($file);
-    
-    $pageActionsClassName = $package . '\\' . $moduleName . '\\' . 
-        'Ui\Component\Listing\Column\\' . 
+
+    $pageActionsClassName = $package . '\\' . $moduleName . '\\' .
+        'Ui\Component\Listing\Column\\' .
         ucwords(preg_replace('%[^a-zA-Z0-9]%', '', $gridId)) . '\\' .
         'PageActions';
-        
-    return $pageActionsClassName;        
+
+    return $pageActionsClassName;
 }
 
 /**
@@ -1679,21 +1679,21 @@ function pestle_cli($argv)
 {
     $xml = simplexml_load_file($argv['listing_file']);
     \Pulsestorm\Magento2\Cli\Library\validateAsListing($xml);
-    
+
     $actionsClass = generatePageActionsClassFromListingXmlFileAndXml($argv['listing_file'], $xml);
-    
-    $columns = \Pulsestorm\Magento2\Cli\Library\getOrCreateColumnsNode($xml);            
+
+    $columns = \Pulsestorm\Magento2\Cli\Library\getOrCreateColumnsNode($xml);
     $actionsColumn = $columns->addChild('actionsColumn');
-    $actionsColumn->addAttribute('name', 'actions');    
-    $actionsColumn->addAttribute('class', $actionsClass);    
-    $argument = \Pulsestorm\Magento2\Cli\Library\addArgument($actionsColumn, 'data', 'array');    
+    $actionsColumn->addAttribute('name', 'actions');
+    $actionsColumn->addAttribute('class', $actionsClass);
+    $argument = \Pulsestorm\Magento2\Cli\Library\addArgument($actionsColumn, 'data', 'array');
     $configItem = \Pulsestorm\Magento2\Cli\Library\addItem($argument, 'config', 'array');
     $indexField = \Pulsestorm\Magento2\Cli\Library\addItem($configItem, 'indexField', 'string', $argv['index_field']);
-    
+
     \Pulsestorm\Pestle\Library\output(
         \Pulsestorm\Xml_Library\formatXmlString($xml->asXml())
     );
-    
+
 // <actionsColumn name="actions" class="Pulsestorm\ToDoCrud\Ui\Component\Listing\Column\Pulsestormtodolisting\PageActions">
 //     <argument name="data" xsi:type="array">
 //         <item name="config" xsi:type="array">
@@ -1731,13 +1731,13 @@ function validateNoSuchComponent($xml, $name)
 
 function getContentBlockOrContainerOrReference($xml, $name)
 {
-    return \Pulsestorm\Xml_Library\getNamedXmlBlockWithNodeNames($xml, $name, 
+    return \Pulsestorm\Xml_Library\getNamedXmlBlockWithNodeNames($xml, $name,
         ['container', 'block', 'referenceContainer','referenceBlock']);
 }
 
 function getContentNode($xml,$argv)
 {
-    $nodes = getContentBlockOrContainerOrReference($xml, $argv['block_name']);    
+    $nodes = getContentBlockOrContainerOrReference($xml, $argv['block_name']);
     if(count($nodes) > 1)
     {
         exitWithErrorMessage("BAILING: Found more than one name=\"".$argv['block_name']."\" node.\n");
@@ -1755,14 +1755,14 @@ function getContentNode($xml,$argv)
 */
 function pestle_cli($argv)
 {
-    $xml    = simplexml_load_file($argv['path_layout']);    
+    $xml    = simplexml_load_file($argv['path_layout']);
     validateNoSuchComponent($xml, $argv['ui_component_name']);
     $node   = getContentNode($xml, $argv);
-    
+
     $node->addChild('uiComponent')
         ->addAttribute('name', $argv['ui_component_name']);
-    $xmlString    = \Pulsestorm\Xml_Library\formatXmlString($xml->asXml());        
-    \Pulsestorm\Pestle\Library\writeStringToFile($argv['path_layout'], $xmlString);        
+    $xmlString    = \Pulsestorm\Xml_Library\formatXmlString($xml->asXml());
+    \Pulsestorm\Pestle\Library\writeStringToFile($argv['path_layout'], $xmlString);
     \Pulsestorm\Pestle\Library\output("Added Component");
 }
 }
@@ -1774,7 +1774,7 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 
 
-// pestle_import('Pulsestorm\Xml_Library\simpleXmlAddNodesXpath');    
+// pestle_import('Pulsestorm\Xml_Library\simpleXmlAddNodesXpath');
 // pestle_import('Pulsestorm\Xml_Library\formatXmlString');
 // pestle_import('Pulsestorm\Xml_Library\getXmlNamespaceFromPrefix');
 // pestle_import('Pulsestorm\Magento2\Cli\Xml_Template\getBlankXml');
@@ -1797,14 +1797,14 @@ function pestle_cli($argv)
     $xml = simplexml_load_file($argv['listing_file']);
     \Pulsestorm\Magento2\Cli\Library\validateAsListing($xml);
     $columns = \Pulsestorm\Magento2\Cli\Library\getOrCreateColumnsNode($xml);
-    
+
     $sectionsColumn = $columns->addChild('selectionsColumn');
-    $sectionsColumn->addAttribute('name', $argv['column_name']);    
-    $argument = \Pulsestorm\Magento2\Cli\Library\addArgument($sectionsColumn, 'data', 'array');    
+    $sectionsColumn->addAttribute('name', $argv['column_name']);
+    $argument = \Pulsestorm\Magento2\Cli\Library\addArgument($sectionsColumn, 'data', 'array');
     $configItem = \Pulsestorm\Magento2\Cli\Library\addItem($argument, 'config', 'array');
     $indexField = \Pulsestorm\Magento2\Cli\Library\addItem($configItem, 'indexField', 'string', $argv['index_field']);
 
-    writeStringToFile($argv['listing_file'], \Pulsestorm\Xml_Library\formatXmlString($xml->asXml()));     
+    writeStringToFile($argv['listing_file'], \Pulsestorm\Xml_Library\formatXmlString($xml->asXml()));
 
 }
 }
@@ -1812,7 +1812,7 @@ namespace Pulsestorm\Magento2\Cli\Magento2_Generate_Ui_Grid{
 use function Pulsestorm\Pestle\Importer\pestle_import;
 
 
-    
+
 
 
 
@@ -1825,15 +1825,15 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 function generateArgumentNode($xml, $gridId, $dataSourceName, $columnsName, $collection)
 {
     $shortName = getShortModelNameFromResourceModelCollection(
-        $collection);    
+        $collection);
     $fullIdentifier = $gridId . '.' . $dataSourceName;
-    
+
     $argument   = \Pulsestorm\Magento2\Cli\Library\addArgument($xml, 'data', 'array');
     $js_config  = \Pulsestorm\Magento2\Cli\Library\addItem($argument,'js_config','array');
-    $provider   = \Pulsestorm\Magento2\Cli\Library\addItem($js_config, 'provider', 'string', $fullIdentifier);      
-    $deps       = \Pulsestorm\Magento2\Cli\Library\addItem($js_config, 'deps', 'string', $fullIdentifier);      
-    $spinner    = \Pulsestorm\Magento2\Cli\Library\addItem($argument, 'spinner', 'string', $columnsName);         
-    
+    $provider   = \Pulsestorm\Magento2\Cli\Library\addItem($js_config, 'provider', 'string', $fullIdentifier);
+    $deps       = \Pulsestorm\Magento2\Cli\Library\addItem($js_config, 'deps', 'string', $fullIdentifier);
+    $spinner    = \Pulsestorm\Magento2\Cli\Library\addItem($argument, 'spinner', 'string', $columnsName);
+
     $buttons    = \Pulsestorm\Magento2\Cli\Library\addItem($argument, 'buttons', 'array');
     $add        = \Pulsestorm\Magento2\Cli\Library\addItem($buttons, 'add', 'array');
     \Pulsestorm\Magento2\Cli\Library\addItem($add, 'name', 'string', 'add');
@@ -1844,7 +1844,7 @@ function generateArgumentNode($xml, $gridId, $dataSourceName, $columnsName, $col
     return $argument;
 }
 
-function addArgumentsToDataProvider($dataProvider, $providerClass, 
+function addArgumentsToDataProvider($dataProvider, $providerClass,
             $dataSourceName, $databaseIdName, $requestIdName)
 {
     \Pulsestorm\Magento2\Cli\Library\addArgument($dataProvider, 'class','string',$providerClass);
@@ -1852,27 +1852,27 @@ function addArgumentsToDataProvider($dataProvider, $providerClass,
     \Pulsestorm\Magento2\Cli\Library\addArgument($dataProvider, 'primaryFieldName','string',$databaseIdName);
     \Pulsestorm\Magento2\Cli\Library\addArgument($dataProvider, 'requestFieldName','string',$requestIdName);
     $dataForProvider = \Pulsestorm\Magento2\Cli\Library\addArgument($dataProvider, 'data','array');
-    
+
     $config     = \Pulsestorm\Magento2\Cli\Library\addItem($dataForProvider, 'config','array');
     $update_url = \Pulsestorm\Magento2\Cli\Library\addItem($config,'update_url','url');
     $update_url->addAttribute('path', 'mui/index/render');
 
-    $storageConfig = \Pulsestorm\Magento2\Cli\Library\addItem($config, 'storageConfig', 'array');    
+    $storageConfig = \Pulsestorm\Magento2\Cli\Library\addItem($config, 'storageConfig', 'array');
     $indexField    = \Pulsestorm\Magento2\Cli\Library\addItem($storageConfig, 'indexField', 'string', $databaseIdName);
 //     <item name="storageConfig" xsi:type="array">
 //         <item name="indexField" xsi:type="string">pulsestorm_commercebug_log_id</item>
-//     </item>                    
-    
+//     </item>
+
 }
 
 function generateDatasourceNode($xml, $dataSourceName, $providerClass, $databaseIdName, $requestIdName)
 {
     $dataSource      = \Pulsestorm\Xml_Library\simpleXmlAddNodesXpath($xml, "dataSource[@name=$dataSourceName]");
-    
+
     $dataProvider    = \Pulsestorm\Magento2\Cli\Library\addArgument($dataSource, 'dataProvider','configurableObject');
-    addArgumentsToDataProvider($dataProvider, $providerClass, $dataSourceName, 
+    addArgumentsToDataProvider($dataProvider, $providerClass, $dataSourceName,
                                 $databaseIdName, $requestIdName);
-    
+
     $data            = \Pulsestorm\Magento2\Cli\Library\addArgument($dataSource, 'data','array');
     $js_config       = \Pulsestorm\Magento2\Cli\Library\addItem($data, 'js_config', 'array');
     $component       = \Pulsestorm\Magento2\Cli\Library\addItem($js_config, 'component', 'string', 'Magento_Ui/js/grid/provider');
@@ -1893,10 +1893,10 @@ function addIdColumnToColumns($columns, $data, $idColumn)
     $columnId->addAttribute('name', $idColumn);
     $data = \Pulsestorm\Magento2\Cli\Library\addArgument($columnId, 'data', 'array');
     $config = \Pulsestorm\Magento2\Cli\Library\addItem($data, 'config', 'array');
-    
+
     \Pulsestorm\Magento2\Cli\Library\addItem($config, 'filter',  'string', 'textRange');
     \Pulsestorm\Magento2\Cli\Library\addItem($config, 'sorting', 'string', 'asc');
-    
+
     $id = \Pulsestorm\Magento2\Cli\Library\addItem($config, 'label',   'string', 'ID');
     $id->addAttribute('translate', 'true');
 
@@ -1909,22 +1909,22 @@ function addActionsColumnToColumns($columns, $pageActionsClassName, $idColumn)
     $actionsColumn->addAttribute('class',$pageActionsClassName);
     $data = \Pulsestorm\Magento2\Cli\Library\addArgument($actionsColumn, 'data','array');
     $config = \Pulsestorm\Magento2\Cli\Library\addItem($data, 'config', 'array');
-    addBaseColumnItemNodes($config, '107', $idColumn, 200);        
+    addBaseColumnItemNodes($config, '107', $idColumn, 200);
     return $actionsColumn;
 }
 
 function generateColumnsNode($xml, $columnsName, $pulsestorm_commercebug_log_id, $pageActionsClassName)
 {
-    $columns         = \Pulsestorm\Xml_Library\simpleXmlAddNodesXpath($xml, "columns[@name=$columnsName]");    
+    $columns         = \Pulsestorm\Xml_Library\simpleXmlAddNodesXpath($xml, "columns[@name=$columnsName]");
     $sectionColumns  = $columns->addChild('selectionsColumn');
     $sectionColumns->addAttribute('name','ids');
     $data = \Pulsestorm\Magento2\Cli\Library\addArgument($sectionColumns, 'data', 'array');
     $config = \Pulsestorm\Magento2\Cli\Library\addItem($data, 'config', 'array');
-        
-    addBaseColumnItemNodes($config, '55', $pulsestorm_commercebug_log_id, 10);            
+
+    addBaseColumnItemNodes($config, '55', $pulsestorm_commercebug_log_id, 10);
     addIdColumnToColumns($columns, $data, $pulsestorm_commercebug_log_id);
     addActionsColumnToColumns($columns, $pageActionsClassName, $pulsestorm_commercebug_log_id);
-                
+
     return $columns;
 }
 
@@ -1959,18 +1959,18 @@ function generateProdiverClassFromGridIdAndModuleInfo($grid_id, $module_info)
 {
     $providerClass = $module_info->vendor . '\\' . $module_info->short_name . '\\' .
         'Ui\\Component\\Listing\\DataProviders\\' .
-        str_replace(' ','\\',ucwords(str_replace('_', ' ', $grid_id)));    
-    return $providerClass;    
+        str_replace(' ','\\',ucwords(str_replace('_', ' ', $grid_id)));
+    return $providerClass;
 }
 
 function generatePageActionClassNameFromPackageModuleAndGridId($package, $moduleName, $gridId)
 {
     $pageActionsClassName = 'Pulsestorm\Commercebug\Ui\Component\Listing\Column\PageActions';
-    $pageActionsClassName = $package . '\\' . $moduleName . '\\' . 
-        'Ui\Component\Listing\Column\\' . 
+    $pageActionsClassName = $package . '\\' . $moduleName . '\\' .
+        'Ui\Component\Listing\Column\\' .
         ucwords(preg_replace('%[^a-zA-Z0-9]%', '', $gridId)) . '\\' .
         'PageActions';
-    return $pageActionsClassName;        
+    return $pageActionsClassName;
 }
 
 function generateRequestIdName()
@@ -1983,18 +1983,18 @@ function generateUiComponentXmlFile($gridId, $databaseIdName, $module_info, $col
     $pageActionsClassName = generatePageActionClassNameFromPackageModuleAndGridId(
         $module_info->vendor, $module_info->short_name, $gridId);
     $requestIdName    = generateRequestIdName();
-    $providerClass    = generateProdiverClassFromGridIdAndModuleInfo($gridId, $module_info);    
-    $dataSourceName   = generateDataSourceNameFromGridId($gridId);    
+    $providerClass    = generateProdiverClassFromGridIdAndModuleInfo($gridId, $module_info);
+    $dataSourceName   = generateDataSourceNameFromGridId($gridId);
     $columnsName      = generateColumnsNameFromGridId($gridId);
 
-    $xml             = simplexml_load_string(\Pulsestorm\Magento2\Cli\Xml_Template\getBlankXml('uigrid'));        
-    $argument        = generateArgumentNode($xml, $gridId, $dataSourceName, $columnsName, $collection);        
+    $xml             = simplexml_load_string(\Pulsestorm\Magento2\Cli\Xml_Template\getBlankXml('uigrid'));
+    $argument        = generateArgumentNode($xml, $gridId, $dataSourceName, $columnsName, $collection);
     $dataSource      = generateDatasourceNode($xml, $dataSourceName, $providerClass, $databaseIdName, $requestIdName);
     generateListingToolbar($xml);
     $columns         = generateColumnsNode($xml, $columnsName, $databaseIdName, $pageActionsClassName);
-     
-    $path = $module_info->folder . 
-        '/view/adminhtml/ui_component/' . $gridId . '.xml';        
+
+    $path = $module_info->folder .
+        '/view/adminhtml/ui_component/' . $gridId . '.xml';
     \Pulsestorm\Pestle\Library\output("Creating New $path");
     \Pulsestorm\Pestle\Library\writeStringToFile($path, \Pulsestorm\Xml_Library\formatXmlString($xml->asXml()));
     return $xml;
@@ -2004,7 +2004,7 @@ function addVirtualType($xml, $virtualTypeName, $virtualTypeType)
 {
     $virtualType = $xml->addChild('virtualType');
     $virtualType->addAttribute('name', $virtualTypeName);
-    $virtualType->addAttribute('type', $virtualTypeType);    
+    $virtualType->addAttribute('type', $virtualTypeType);
     return $virtualType;
 }
 
@@ -2013,28 +2013,28 @@ function generateDiXml($module_info)
     $path_di = $module_info->folder . '/etc/adminhtml/di.xml';
     if(!file_exists($path_di))
     {
-        $xml =  simplexml_load_string(\Pulsestorm\Magento2\Cli\Xml_Template\getBlankXml('di'));           
+        $xml =  simplexml_load_string(\Pulsestorm\Magento2\Cli\Xml_Template\getBlankXml('di'));
         \Pulsestorm\Pestle\Library\writeStringToFile($path_di, $xml->asXml());
         \Pulsestorm\Pestle\Library\output("Created new $path_di");
     }
     $xml = simplexml_load_file($path_di);
-    
-    $item = \Pulsestorm\Xml_Library\simpleXmlAddNodesXpath($xml, 
+
+    $item = \Pulsestorm\Xml_Library\simpleXmlAddNodesXpath($xml,
         'type[@name=Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory]/' .
         'arguments/argument[@name=collections,@xsi:type=array]/' .
-        'item[@name=pulsestorm_commercebug_log_data_source,@xsi:type=string]' 
-        
-    );            
+        'item[@name=pulsestorm_commercebug_log_data_source,@xsi:type=string]'
+
+    );
     $item[0] = 'Pulsestorm\Commercebug\Model\ResourceModel\Log\Grid\Collection';
 
     $virtualType = addVirtualType(
         $xml, 'Pulsestorm\Commercebug\Model\ResourceModel\Log\Grid\Collection',
         'Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult');
-    
+
     $arguments   = $virtualType->addChild('arguments');
     $argument   = \Pulsestorm\Magento2\Cli\Library\addArgument($arguments, 'mainTable', 'string', 'pulsestorm_commercebug_log');
     $argument   = \Pulsestorm\Magento2\Cli\Library\addArgument($arguments, 'resourceModel', 'string', 'Pulsestorm\Commercebug\Model\ResourceModel\Log');
-    
+
     return $xml;
 }
 
@@ -2042,14 +2042,14 @@ function generatePageActionClass($moduleInfo, $gridId, $idColumn, $collection)
 {
     $pageActionsClassName = generatePageActionClassNameFromPackageModuleAndGridId(
         $moduleInfo->vendor, $moduleInfo->short_name, $gridId);
-        
-    // $editUrl              = 'adminhtml/'.$gridId.'/viewlog';        
-    
-    
-    // $editUrl              = $gridId . '/index/edit';        
+
+    // $editUrl              = 'adminhtml/'.$gridId.'/viewlog';
+
+
+    // $editUrl              = $gridId . '/index/edit';
     $shortName = getShortModelNameFromResourceModelCollection(
-        $collection);    
-    $editUrl = $gridId . '/' . strToLower($shortName) . '/edit';   
+        $collection);
+    $editUrl = $gridId . '/' . strToLower($shortName) . '/edit';
     $prepareDataSource    = '
     public function prepareDataSource(array $dataSource)
     {
@@ -2070,22 +2070,22 @@ function generatePageActionClass($moduleInfo, $gridId, $idColumn, $collection)
         }
 
         return $dataSource;
-    }    
-    ' . "\n";            
-    $contents = \Pulsestorm\Cli\Code_Generation\createClassTemplateWithUse($pageActionsClassName, '\Magento\Ui\Component\Listing\Columns\Column');            
+    }
+    ' . "\n";
+    $contents = \Pulsestorm\Cli\Code_Generation\createClassTemplateWithUse($pageActionsClassName, '\Magento\Ui\Component\Listing\Columns\Column');
     $contents = str_replace('<$use$>','',$contents);
     $contents = str_replace('<$body$>', $prepareDataSource, $contents);
-    
+
     \Pulsestorm\Pestle\Library\output("Creating: $pageActionsClassName");
-    $return   = \Pulsestorm\Magento2\Cli\Library\createClassFile($pageActionsClassName,$contents);             
+    $return   = \Pulsestorm\Magento2\Cli\Library\createClassFile($pageActionsClassName,$contents);
     return $return;
 }
 
 function generateDataProviderClass($moduleInfo, $gridId, $collectionFactory)
 {
-    $providerClass      = generateProdiverClassFromGridIdAndModuleInfo($gridId, $moduleInfo);    
+    $providerClass      = generateProdiverClassFromGridIdAndModuleInfo($gridId, $moduleInfo);
     $collectionFactory  = '\\' . trim($collectionFactory, '\\');
-    $constructor = '    
+    $constructor = '
     public function __construct(
         $name,
         $primaryFieldName,
@@ -2096,14 +2096,14 @@ function generateDataProviderClass($moduleInfo, $gridId, $collectionFactory)
     ) {
         parent::__construct($name, $primaryFieldName, $requestFieldName, $meta, $data);
         $this->collection = $collectionFactory->create();
-    }' . "\n";        
-    
+    }' . "\n";
+
     $contents           = \Pulsestorm\Cli\Code_Generation\createClassTemplateWithUse($providerClass, '\\Magento\Ui\DataProvider\AbstractDataProvider');
     $contents           = str_replace('<$use$>', '',  $contents);
-    $contents           = str_replace('<$body$>', $constructor,  $contents);    
-    
+    $contents           = str_replace('<$body$>', $constructor,  $contents);
+
     \Pulsestorm\Pestle\Library\output("Creating: $providerClass");
-    $return             = \Pulsestorm\Magento2\Cli\Library\createClassFile($providerClass,$contents);    
+    $return             = \Pulsestorm\Magento2\Cli\Library\createClassFile($providerClass,$contents);
     return $contents;
 }
 
@@ -2134,15 +2134,15 @@ function pestle_cli($argv)
 
 
     generateUiComponentXmlFile(
-        $argv['grid_id'], $argv['db_id_column'], $module_info, $argv['collection_resource']);                                        
-        
+        $argv['grid_id'], $argv['db_id_column'], $module_info, $argv['collection_resource']);
+
     generateDataProviderClass(
         $module_info, $argv['grid_id'], $argv['collection_resource'] . 'Factory');
-        
+
     generatePageActionClass(
-        $module_info, $argv['grid_id'], $argv['db_id_column'], $argv['collection_resource']);                    
-        
-    \Pulsestorm\Pestle\Library\output("Don't forget to add this to your layout XML with <uiComponent name=\"{$argv['grid_id']}\"/> ");        
+        $module_info, $argv['grid_id'], $argv['db_id_column'], $argv['collection_resource']);
+
+    \Pulsestorm\Pestle\Library\output("Don't forget to add this to your layout XML with <uiComponent name=\"{$argv['grid_id']}\"/> ");
 }
 }
 namespace Pulsestorm\Magento2\Cli\Magento2\Generate\Registration{
@@ -2152,9 +2152,9 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 /**
 * Generates registration.php
-* This command generates the PHP code for a 
+* This command generates the PHP code for a
 * Magento module registration.php file.
-* 
+*
 *     $ pestle.phar magento2:generate:registration Foo_Bar
 *     <?php
 *         \Magento\Framework\Component\ComponentRegistrar::register(
@@ -2162,9 +2162,9 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 *             'Foo_Bar',
 *             __DIR__
 *         );
-* 
+*
 * @command magento2:generate:registration
-* @argument module_name Which Module? [Vendor_Module] 
+* @argument module_name Which Module? [Vendor_Module]
 */
 function pestle_cli($argv)
 {
@@ -2206,11 +2206,11 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 /**
 * Injects a dependency into a class constructor
-* This command modifies a preexisting class, adding the provided 
-* dependency to that class's property list, `__construct` parameters 
+* This command modifies a preexisting class, adding the provided
+* dependency to that class's property list, `__construct` parameters
 * list, and assignment list.
 *
-*    pestle.phar magento2:generate:di app/code/Pulsestorm/Generate/Command/Example.php 'Magento\Catalog\Model\ProductFactory' 
+*    pestle.phar magento2:generate:di app/code/Pulsestorm/Generate/Command/Example.php 'Magento\Catalog\Model\ProductFactory'
 *
 * @command magento2:generate:di
 * @argument file Which PHP class file are we injecting into?
@@ -2229,7 +2229,7 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 /**
 * Creates a Route XML
-* generate_route module area id 
+* generate_route module area id
 * @command magento2:generate:route
 * @argument module_name Which Module? [Pulsestorm_HelloWorld]
 * @argument area Which Area (frontend, adminhtml)? [frontend]
@@ -2275,24 +2275,24 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 
 function getModelName($arguments, $index, $newArguments)
-{    
+{
     // var_dump($arguments, $index);
     $module      = $newArguments['module'];
     $name        = $newArguments['observer_name'];
-    
+
     $moduleParts = explode('_', $module);
     $nameParts   = explode('_', $name);
-    
+
     $nameParts   = array_map(function($item){
         return ucWords($item);
     }, $nameParts);
 
     $nameParts   = array_filter($nameParts, function($item) use ($moduleParts){
         return !in_array($item, $moduleParts);
-    });    
-    
+    });
+
     $moduleParts[] = 'Observer';
-    $class = implode('\\', $moduleParts) . '\\' . 
+    $class = implode('\\', $moduleParts) . '\\' .
         implode('\\', $nameParts);
 
     $value = \Pulsestorm\Pestle\Library\input('Class Name?', $class);
@@ -2301,7 +2301,7 @@ function getModelName($arguments, $index, $newArguments)
 
 /**
 * Generates Magento 2 Observer
-* This command generates the necessary files and configuration to add 
+* This command generates the necessary files and configuration to add
 * an event observer to a Magento 2 system.
 *
 *    pestle.phar magento2:generate:observer Pulsestorm_Generate controller_action_predispatch pulsestorm_generate_listener3 'Pulsestorm\Generate\Model\Observer3'
@@ -2333,11 +2333,11 @@ function loadOrCreateDiXml($module_info)
     $path_di = $module_info->folder . '/etc/di.xml';
     if(!file_exists($path_di))
     {
-        $xml =  simplexml_load_string(\Pulsestorm\Magento2\Cli\Xml_Template\getBlankXml('di'));           
+        $xml =  simplexml_load_string(\Pulsestorm\Magento2\Cli\Xml_Template\getBlankXml('di'));
         \Pulsestorm\Pestle\Library\writeStringToFile($path_di, $xml->asXml());
         \Pulsestorm\Pestle\Library\output("Created new $path_di");
-    }    
-    $xml            =  simplexml_load_file($path_di);       
+    }
+    $xml            =  simplexml_load_file($path_di);
     return [
         'path'=>$path_di,
         'xml'=>$xml
@@ -2354,8 +2354,8 @@ function generateDiConfiguration($argv)
     $preference         = $di_xml->addChild('preference');
     $preference['for']  = $argv['for'];
     $preference['type'] = $argv['type'];
-    
-    \Pulsestorm\Pestle\Library\writeStringToFile($path, \Pulsestorm\Xml_Library\formatXmlString($di_xml->asXml()));    
+
+    \Pulsestorm\Pestle\Library\writeStringToFile($path, \Pulsestorm\Xml_Library\formatXmlString($di_xml->asXml()));
 
 }
 
@@ -2366,18 +2366,18 @@ function isTypeInterface($type)
 }
 
 function generateNewClass($argv)
-{    
-    $pathType       = \Pulsestorm\Magento2\Cli\Path_From_Class\getPathFromClass($argv['type']);  
-    
+{
+    $pathType       = \Pulsestorm\Magento2\Cli\Path_From_Class\getPathFromClass($argv['type']);
+
     $typeGlobalNs   = '\\' . trim($argv['for'],'\\');
-    $classContents  = \Pulsestorm\Cli\Code_Generation\createClassTemplate($argv['type'], $typeGlobalNs);        
+    $classContents  = \Pulsestorm\Cli\Code_Generation\createClassTemplate($argv['type'], $typeGlobalNs);
     if(isTypeInterface($typeGlobalNs))
     {
         $classContents  = \Pulsestorm\Cli\Code_Generation\createClassTemplate($argv['type'], null, $typeGlobalNs);
     }
-    
+
     $classContents  = str_replace('<$body$>', '',$classContents);
-    
+
     if(!file_exists($pathType))
     {
         \Pulsestorm\Pestle\Library\output("Creating $pathType");
@@ -2398,26 +2398,26 @@ function generateNewClass($argv)
 * @argument type New Concrete Class? [Pulsestorm\Helloworld\Model\NewModel]
 */
 function pestle_cli($argv)
-{    
+{
     generateDiConfiguration($argv);
     generateNewClass($argv);
 
-    // output("Created file $path_plugin");       
+    // output("Created file $path_plugin");
     // output("This command will add to di.xml (create if needed)");
     // output("This command will also generate a class");
     // output("If passed an interface, class will implement");
     // output("If passed a class, class will extend");
     // output("Simple text matching for interface detection?");
 //     generateUiComponentXmlFile(
-//         $argv['grid_id'], $argv['db_id_column'], $module_info);                                        
-//         
+//         $argv['grid_id'], $argv['db_id_column'], $module_info);
+//
 //     generateDataProviderClass(
 //         $module_info, $argv['grid_id'], $argv['collection_resource'] . 'Factory');
-//         
+//
 //     generatePageActionClass(
-//         $module_info, $argv['grid_id'], $argv['db_id_column']);                    
-//         
-//     output("Don't forget to add this to your layout XML with <uiComponent name=\"{$argv['grid_id']}\"/> ");        
+//         $module_info, $argv['grid_id'], $argv['db_id_column']);
+//
+//     output("Don't forget to add this to your layout XML with <uiComponent name=\"{$argv['grid_id']}\"/> ");
 }
 }
 namespace Pulsestorm\Magento2\Cli\Magento2\Generate\Theme{
@@ -2466,11 +2466,11 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 /**
 * Generates plugin XML
-* This command generates the necessary files and configuration 
-* to "plugin" to a preexisting Magento 2 object manager object. 
+* This command generates the necessary files and configuration
+* to "plugin" to a preexisting Magento 2 object manager object.
 *
 *     pestle.phar magento2:generate:plugin_xml Pulsestorm_Helloworld 'Magento\Framework\Logger\Monolog' 'Pulsestorm\Helloworld\Plugin\Magento\Framework\Logger\Monolog'
-* 
+*
 * @argument module_name Create in which module? [Pulsestorm_Helloworld]
 * @argument class Which class are you plugging into? [Magento\Framework\Logger\Monolog]
 * @argument class_plugin What's your plugin class name? [<$module_name$>\Plugin\<$class$>]
@@ -2495,7 +2495,7 @@ function selectParentMenu($arguments, $index)
     {
         return $arguments[$index];
     }
-        
+
     $parent     = '';
     $continue   = \Pulsestorm\Pestle\Library\input('Is this a new top level menu? (Y/N)','N');
     if(strToLower($continue) === 'n')
@@ -2531,8 +2531,8 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 /**
 * For conversion of Zend Log Level into PSR Log Level
-* 
-* This command generates a list of Magento 1 log levels, 
+*
+* This command generates a list of Magento 1 log levels,
 * and their PSR log level equivalents.
 *
 * @command magento2:generate:psr-log-level
@@ -2655,11 +2655,11 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 /**
 * Generates bin/magento command files
-* This command generates the necessary files and configuration 
+* This command generates the necessary files and configuration
 * for a new command for Magento 2's bin/magento command line program.
 *
 *   pestle.phar magento2:generate:command Pulsestorm_Generate Example
-* 
+*
 * Creates
 * app/code/Pulsestorm/Generate/Command/Example.php
 * app/code/Pulsestorm/Generate/etc/di.xml
@@ -2850,9 +2850,9 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 /**
 * Generates a help class for reading Magento's configuration
 *
-* This command will generate the necessary files and configuration 
+* This command will generate the necessary files and configuration
 * needed for reading Magento 2's configuration values.
-* 
+*
 * @command magento2:generate:config-helper
 * @todo needs to be implemented
 */
@@ -2867,7 +2867,7 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 
 /**
-* Generates a Magento 2 acl.xml file. 
+* Generates a Magento 2 acl.xml file.
 *
 * @command magento2:generate:acl
 * @argument module_name Which Module? [Pulsestorm_HelloWorld]
@@ -2889,25 +2889,25 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 * Changes the title of a specific ACL rule in a Magento 2 acl.xml file
 *
 * @command magento2:generate:acl:change-title
-* @argument path_acl Path to ACL file? 
-* @argument acl_rule_id ACL Rule ID? 
-* @argument title New Title? 
+* @argument path_acl Path to ACL file?
+* @argument acl_rule_id ACL Rule ID?
+* @argument title New Title?
 */
 function pestle_cli($argv)
 {
     $xml = simplexml_load_file($argv['path_acl']);
-    
+
     $nodes = \Pulsestorm\Xml_Library\getByAttributeXmlBlockWithNodeNames(
         'id', $xml, $argv['acl_rule_id'], ['resource']);
-    
+
     if(count($nodes) > 1)
     {
         \Pulsestorm\Pestle\Library\exitWithErrorMessage("Found more than one node with {$argv['acl_rule_id']}");
     }
 
-    $node = array_pop($nodes);            
-    $node['title'] = $argv['title'];   
-    
+    $node = array_pop($nodes);
+    $node['title'] = $argv['title'];
+
     \Pulsestorm\Pestle\Library\writeStringToFile($argv['path_acl'], $xml->asXml());
     \Pulsestorm\Pestle\Library\output("Changed Title");
 }
@@ -3875,12 +3875,12 @@ function pestle_cli($argv)
     {
         $Path = $argv[0];
     }
-    
+
     foreach(glob($path . '/*/*') as $file)
     {
         $parts = explode('/', $file);
         $module = implode('_', array_slice($parts, count($parts) - 2));
-        
+
         $file = $file . '/' . 'registration.php';
         if(file_exists($file))
         {
@@ -3893,7 +3893,7 @@ function pestle_cli($argv)
             }
             \Pulsestorm\Pestle\Library\output("However, it's missing single quoted '$module' string");
             \Pulsestorm\Pestle\Library\output("");
-            continue;            
+            continue;
         }
         \Pulsestorm\Pestle\Library\output("No $file");
         $answer = \Pulsestorm\Pestle\Library\input("Create? [Y/n]", 'n');
@@ -3933,10 +3933,10 @@ function pestle_cli($argv)
     array_shift($class);
 
     $class_name = array_pop($class);
-    $body = '<' . '?' . 'php' . "\n" . 
+    $body = '<' . '?' . 'php' . "\n" .
     'namespace ' . implode('\\', $class) . ";\n" .
     'class ' . str_replace('.php','',$class_name) . "\n" . '{}';
-    
+
     \Pulsestorm\Pestle\Library\output($body);
 }}
 namespace Pulsestorm\Magento2\Cli\Export_Module{
@@ -3947,10 +3947,10 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 
 function getNextTConstantEncapsedStringFromTokenArray($tokens, $index)
-{    
-    $tokens = array_slice($tokens, $index+1);  
+{
+    $tokens = array_slice($tokens, $index+1);
     foreach($tokens as $token)
-    {   
+    {
         if($token->token_name === 'T_CONSTANT_ENCAPSED_STRING')
         {
             return $token;
@@ -3967,7 +3967,7 @@ function isTokenFunction($token, $function, $tokens, $index)
         return isTokenFunction($tokens[$index], $function, $tokens, $index);
     }
 
-    return  !($token->token_value !== $function || 
+    return  !($token->token_value !== $function ||
             $tokens[$index+1]->token_value !== '(');
 }
 
@@ -3990,22 +3990,22 @@ function getFunctionNamesFromPestleImports($tokens)
     $tokens = array_values($tokens);
     $imports=[];
     foreach($tokens as $index=>$token)
-    {    
+    {
         if(!isTokenPestleImport($token, $tokens, $index)){ continue;}
         $imports[] = getNextTConstantEncapsedStringFromTokenArray($tokens, $index);
-    }    
-    
+    }
+
     $importedNames = array_map(function($token){
         return trim($token->token_value,"'\"");
     }, $imports);
-    
+
     $return = [];
     foreach($importedNames as $name)
     {
         $parts = explode('\\', $name);
         $return[$name] = array_pop($parts);
     }
-    
+
     return $return;
 }
 
@@ -4013,7 +4013,7 @@ function getRealNamespaceFromImportedFunction($function)
 {
     $path = \Pulsestorm\Pestle\Importer\getPathFromFunctionName($function);
     $tokens = \Pulsestorm\Cli\Token_Parse\pestle_token_get_all(file_get_contents($path));
-    
+
     $flag = false;
     $tokensNamespace = [];
     foreach($tokens as $token)
@@ -4046,7 +4046,7 @@ function replaceFunctionCallWithFunctionCallInTokens($current, $new, $tokens)
         $token->token_value = '\\' . getRealNamespaceFromImportedFunction($new) . '\\' . $current;
         $tokens[$index] = $token;
     }
-    
+
     return $tokens;
 }
 
@@ -4056,7 +4056,7 @@ function changeToBlockedNamespace($string)
     $string = preg_replace('%(namespace.+?);%',"$1{",$string);
     $string = str_replace("\t<?php",'',$string);
     $string = str_replace("\tnamespace",'namespace',$string);
-    $string .= "\n" . '}';    
+    $string .= "\n" . '}';
     return $string;
 }
 
@@ -4065,7 +4065,7 @@ function getTokensAsString($tokens)
     $values = array_map(function($token){
         return $token->token_value;
     }, $tokens);
-    
+
     $string = implode('',$values);
     // $string = changeToBlockedNamespace($string);
 
@@ -4093,7 +4093,7 @@ function removePestleImports($tokens)
         {
             $flag = false;
         }
-        
+
         if($flag)
         {
             $tokensCleaned[] = $token;
@@ -4117,8 +4117,8 @@ function turnIntoBlockedNamespace($tokens)
         if($token->token_value === 'namespace')
         {
             $flag = true;
-        }        
-        if(!$flag) {continue;}        
+        }
+        if(!$flag) {continue;}
         if($token->token_value !== ';'){continue;}
         $token->token_value = '{';
         $flag = false;
@@ -4151,9 +4151,9 @@ function getFilesFromArguments($arguments)
     {
         $files = $argv;
     }
-    
+
     $files = array_filter($files, function($file){
-        return 
+        return
             strpos($file, 'pulsestorm/pestle/importer/module.php') === false &&
             strpos($file, 'pulsestorm/pestle/runner/module.php') === false ;
     });
@@ -4161,25 +4161,25 @@ function getFilesFromArguments($arguments)
 }
 
 /**
-* ALPHA: Seems to be a start at exporting a pestle module as functions. 
+* ALPHA: Seems to be a start at exporting a pestle module as functions.
 * @command pestle:export-module
 * @argument module_file Which file?
 */
 function pestle_cli($arguments)
-{    
+{
     $files = getFilesFromArguments($arguments);
     foreach($files as $file)
     {
-        $tokens = \Pulsestorm\Cli\Token_Parse\pestle_token_get_all(file_get_contents($file));    
+        $tokens = \Pulsestorm\Cli\Token_Parse\pestle_token_get_all(file_get_contents($file));
         $tokens = replaceNamespacedFunction($tokens);
         $tokens = removePestleImports($tokens);
         $tokens = removePhpTag($tokens);
         $tokens = turnIntoBlockedNamespace($tokens);
-        //collect names of all functions    
-        $string = getTokensAsString($tokens);    
+        //collect names of all functions
+        $string = getTokensAsString($tokens);
         // output("##PROCESSING: $file");
         \Pulsestorm\Pestle\Library\output($string);
-        // output("##DONE PROCESSING: $file");        
+        // output("##DONE PROCESSING: $file");
     }
 }}
 namespace Pulsestorm\Magento2\Cli\Convert_Selenium_Id_For_Codecept{
@@ -4190,7 +4190,7 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 function getCommandAndTwoArgs($string)
 {
     $parts = preg_split('%[\r\n]%',$string);
-    
+
     foreach($parts as $part)
     {
         if(!$part){continue;}
@@ -4202,12 +4202,12 @@ function getCommandAndTwoArgs($string)
             exit(__FUNCTION__);
         }
         $stuff[] = str_replace('&gt;','>',$matches[1]);
-        // $part = ltrim($part, '<td>');        
-        // $part = rtrim($part, '</td>');                
+        // $part = ltrim($part, '<td>');
+        // $part = rtrim($part, '</td>');
         // $part = rtrim('</td>', $part);
         // output($part);
     }
-    
+
     return [
         'command'   =>$stuff[0],
         'arg1'      =>$stuff[1],
@@ -4225,7 +4225,7 @@ function parseIntoCommands($contents)
     foreach($parts as $part)
     {
         $all[] = getCommandAndTwoArgs($part);
-        
+
     }
     return $all;
 }
@@ -4239,7 +4239,7 @@ function convertCommandPause($info)
 {
     $template = getCodeceptionTemplate();
     $template = str_replace('<$methodName$>','wait',$template);
-    $template = str_replace('<$args$>',($info['arg1'] / 1000),$template);    
+    $template = str_replace('<$args$>',($info['arg1'] / 1000),$template);
     return $template;
     // return '$I->wait('.$info['arg1'].');';
 }
@@ -4254,7 +4254,7 @@ function convertCommandOpen($info)
     $template = getCodeceptionTemplate();
     $template = str_replace('<$methodName$>','amOnPage',$template);
     $template = str_replace('<$args$>',
-        "'" . $info['arg1'] . "'",$template);    
+        "'" . $info['arg1'] . "'",$template);
     return $template;
 }
 
@@ -4263,9 +4263,9 @@ function convertCommandClickandwait($info)
     $template = getCodeceptionTemplate();
     $timeout  = '"' . getDefaultTimeoutInSeconds() . '"';
     $template = str_replace('<$methodName$>','click',$template);
-    $template = str_replace('<$args$>',"'" . $info['arg1'] . "'",$template); 
+    $template = str_replace('<$args$>',"'" . $info['arg1'] . "'",$template);
     $template .=  "\n" . convertInfoArray(['command'=>'waitForElementPresent',
-                                'arg1'=>'css=body','arg2'=>'']);    
+                                'arg1'=>'css=body','arg2'=>'']);
     return $template;
 }
 
@@ -4275,7 +4275,7 @@ function convertCommandWaitfortext($info)
     $timeout  = '"' . getDefaultTimeoutInSeconds() . '"';
     $template = str_replace('<$methodName$>','selectOption',$template);
     $template = str_replace('<$args$>',
-        "'" . $info['arg1'] . "',".$timeout.",'" . $info['arg2'] . "'",$template);    
+        "'" . $info['arg1'] . "',".$timeout.",'" . $info['arg2'] . "'",$template);
     return $template;
 
 }
@@ -4285,7 +4285,7 @@ function convertCommandSelect($info)
     $template = getCodeceptionTemplate();
     $template = str_replace('<$methodName$>','selectOption',$template);
     $template = str_replace('<$args$>',
-        "'" . $info['arg1'] . "','" . $info['arg2'] . "'",$template);    
+        "'" . $info['arg1'] . "','" . $info['arg2'] . "'",$template);
     return $template;
 }
 
@@ -4294,7 +4294,7 @@ function convertCommandType($info)
     $template = getCodeceptionTemplate();
     $template = str_replace('<$methodName$>','fillField',$template);
     $template = str_replace('<$args$>',
-        "'" . $info['arg1'] . "','" . $info['arg2'] . "'",$template);    
+        "'" . $info['arg1'] . "','" . $info['arg2'] . "'",$template);
     return $template;
 }
 
@@ -4303,24 +4303,24 @@ function convertCommandWaitforelementpresent($info)
     $timeout  = '"' . getDefaultTimeoutInSeconds() . '"';
     $template = getCodeceptionTemplate();
     $template = str_replace('<$methodName$>','waitForElement',$template);
-    $template = str_replace('<$args$>',"'" . $info['arg1'] . "'," . $timeout,$template);    
-    return $template; 
+    $template = str_replace('<$args$>',"'" . $info['arg1'] . "'," . $timeout,$template);
+    return $template;
 }
 
 function convertCommandClick($info)
 {
     $template = getCodeceptionTemplate();
     $template = str_replace('<$methodName$>','click',$template);
-    $template = str_replace('<$args$>',"'" . $info['arg1'] . "'",$template);    
-    return $template; 
+    $template = str_replace('<$args$>',"'" . $info['arg1'] . "'",$template);
+    return $template;
 }
 
 function convertInfoArray($info)
 {
-    $method = 'convertCommand' . 
+    $method = 'convertCommand' .
         ucwords(strtolower($info['command']));
     $method = '\Pulsestorm\Magento2\Cli\Convert_Selenium_Id_For_Codecept\\' . $method;
-    return call_user_func($method, $info);        
+    return call_user_func($method, $info);
     // return '$I-><$methodName$>(<$args$>);';
 }
 
@@ -4337,14 +4337,14 @@ function convertInfoArray($info)
 function pestle_cli($argv)
 {
     $file = \Pulsestorm\Magento2\Cli\Library\indexOrInput('Which Selenium IDE test?', 'codecept.html', $argv, 0);
-    $contents = file_get_contents($file);    
-    
+    $contents = file_get_contents($file);
+
     $commands_and_args = parseIntoCommands($contents);
-    
-    $final = array_map(function($info){                
+
+    $final = array_map(function($info){
         return convertInfoArray($info);
     }, $commands_and_args);
-    
+
     \Pulsestorm\Pestle\Library\output(implode("\n", $final));
 }
 }
@@ -4353,7 +4353,7 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 
 /**
-* BETA: Uses pandoc to converts a markdown file to pdf, epub, epub3, html, txt 
+* BETA: Uses pandoc to converts a markdown file to pdf, epub, epub3, html, txt
 *
 * @command pulsestorm:pandoc-md
 * @argument file Markdown file to convert?
@@ -4399,7 +4399,7 @@ function pestle_cli($argv)
             $xml_new = \Pulsestorm\Magento2\Cli\Library\convertObserverTreeScoped($xml->{$scope}, $xml);
             \Pulsestorm\Pestle\Library\output($scope);
             \Pulsestorm\Pestle\Library\output($xml_new->asXml());
-            \Pulsestorm\Pestle\Library\output('--------------------------------------------------');            
+            \Pulsestorm\Pestle\Library\output('--------------------------------------------------');
         }
     }
 
@@ -4413,7 +4413,7 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 function parseNamespace($contents)
 {
     preg_match('%namespace(.+?);%', $contents, $matches);
-    
+
     if(count($matches) < 1)
     {
         return false;
@@ -4427,7 +4427,7 @@ function parseClass($contents)
     if(count($matches) < 1)
     {
         return false;
-    }    
+    }
     $line = trim($matches[1]);
     $parts = preg_split('%\s{1,100}%',$line);
     return array_shift($parts);
@@ -4436,15 +4436,15 @@ function parseClass($contents)
 /**
 * BETA: Scans a Magento 2 module for misnamed PHP classes
 * @command magento2:scan:class-and-namespace
-* @argument folder Which Folder? 
+* @argument folder Which Folder?
 */
 function pestle_cli($argv)
-{    
+{
     // $path = inputOrIndex('Which folder?','/path/to/magento/app/code/Pulsestorm',$argv, 0);
     $path = $argv['folder'];
-    
+
     $files = \Pulsestorm\Phpdotnet\glob_recursive($path . '/*');
-    
+
     foreach($files as $file)
     {
         $file = realpath($file);
@@ -4459,17 +4459,17 @@ function pestle_cli($argv)
         if(!$namespace)
         {
             \Pulsestorm\Pestle\Library\output("No Namespace: Skipping $file");
-            continue;            
+            continue;
         }
         $class     = parseClass($contents);
         if(!$class)
         {
             \Pulsestorm\Pestle\Library\output("No Class: Skipping $class");
-            continue;            
-        }        
+            continue;
+        }
         $full_class = $namespace . '\\' . $class;
         $path       = str_replace('\\','/', $full_class) . '.php';
-    
+
         if(strpos($file, $path) === false)
         {
             \Pulsestorm\Pestle\Library\output("ERROR: Path `$path` not in");
@@ -4494,16 +4494,16 @@ function pestle_cli($argv)
 {
     $file = \Pulsestorm\Pestle\Library\inputOrIndex(
         "File?", '', $argv, 0);
-        
-    $contents = file_get_contents($file);        
+
+    $contents = file_get_contents($file);
     preg_match('%namespace (.+?);%',$contents,$matches);
     $namespace = $matches[1];
-    
-    $namespace = strToLower($namespace);        
-    $path      = 'modules/' . str_replace('\\','/', $namespace);    
-    $full_name = $path . '/module.php';   
+
+    $namespace = strToLower($namespace);
+    $path      = 'modules/' . str_replace('\\','/', $namespace);
+    $full_name = $path . '/module.php';
     if(!is_dir($path))
-    { 
+    {
         mkdir($path, 0755, true);
     }
     copy($file, $full_name);
@@ -4529,7 +4529,7 @@ function traverseXmlFilesForNodeAndExtractUniqueValues($dir, $file, $node_name, 
                 return call_user_func($callback, $node);
             }
             return (string) $node;
-        };        
+        };
         $values = array_merge($values, array_map($traverse_callback, $nodes));
     }
     $values = array_filter($values, function($value)
@@ -4553,12 +4553,12 @@ function getAclRulesFromIsAllowedFunction($string)
 {
     $tokens = \Pulsestorm\Cli\Token_Parse\pestle_token_get_all(
         '<' . '?' . 'php ' . "\n" . $string);
-    $state = STATE_ACLRULE_START;            
+    $state = STATE_ACLRULE_START;
     foreach($tokens as $token)
     {
         if($state === STATE_ACLRULE_START)
         {
-            
+
             if($token->token_name === 'T_STRING' && $token->token_value === 'isAllowed')
             {
                 $state = STATE_ACLRULE_FOUND_ISALLOWED;
@@ -4567,7 +4567,7 @@ function getAclRulesFromIsAllowedFunction($string)
         }
 
         if($state === STATE_ACLRULE_FOUND_ISALLOWED)
-        {        
+        {
             if( $token->token_name === 'T_STRING' ||
                 $token->token_name === 'T_CONSTANT_ENCAPSED_STRING')
             {
@@ -4619,23 +4619,23 @@ function pestle_cli($argv)
 {
     $dir = $argv['dir'];
     $defined_rule_ids = getDefinedRuleIdsFromAclFiles($dir);
-    
+
     $used_rule_ids = [];
-    $used_rule_ids = array_merge($used_rule_ids, 
+    $used_rule_ids = array_merge($used_rule_ids,
         getUsedAclRuleIdsFromSystemXmlFiles($dir));
 
-    $used_rule_ids = array_merge($used_rule_ids, 
+    $used_rule_ids = array_merge($used_rule_ids,
         getUsedAclRuleIdsFromMenuXmlFiles($dir));
 
-    $used_rule_ids = array_merge($used_rule_ids, 
+    $used_rule_ids = array_merge($used_rule_ids,
         getUsedAclRuleIdsFromControllerFiles($dir));
 
     $used_rule_ids = array_unique($used_rule_ids);
-    
+
     sort($defined_rule_ids);
-    sort($used_rule_ids);   
-                         
-    \Pulsestorm\Pestle\Library\output("Checking that all used IDs are defined:");    
+    sort($used_rule_ids);
+
+    \Pulsestorm\Pestle\Library\output("Checking that all used IDs are defined:");
     foreach($used_rule_ids as $id)
     {
         $result = 'ERROR -- not defined';
@@ -4647,18 +4647,18 @@ function pestle_cli($argv)
     }
 
     \Pulsestorm\Pestle\Library\output('');
-        
-    \Pulsestorm\Pestle\Library\output("Checking that all defined IDs are used:");            
+
+    \Pulsestorm\Pestle\Library\output("Checking that all defined IDs are used:");
     foreach($defined_rule_ids as $id)
     {
-        $result = 'ERROR -- not used';    
+        $result = 'ERROR -- not used';
         if(in_array($id, $used_rule_ids))
         {
             $result = 'OK               ';
-        }    
+        }
         \Pulsestorm\Pestle\Library\output("  $result : $id");
     }
-    
+
     \Pulsestorm\Pestle\Library\output('');
     \Pulsestorm\Pestle\Library\output('An unused ID may indicate an error, or may indicate a valid parent rule');
     \Pulsestorm\Pestle\Library\output("Done");
@@ -4705,9 +4705,9 @@ function pestle_cli($argv)
         './update/var/.htaccess',
         './var/.htaccess',
         './var/composer_home/.htaccess',
-        './var/composer_home/cache/.htaccess',        
+        './var/composer_home/cache/.htaccess',
     ];
-    
+
     foreach($files as $file)
     {
         if(!file_exists($file))
@@ -5261,7 +5261,7 @@ function getBlankXmlAcl()
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
     <acl>
         <resources>
-            <resource id="Magento_Backend::admin">        
+            <resource id="Magento_Backend::admin">
             </resource>
         </resources>
     </acl>
@@ -5274,7 +5274,7 @@ function getBlankXmlMenu()
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
     <menu>
     </menu>
-</config>';    
+</config>';
 }
 
 function getBlankXmlUiGrid()
@@ -5307,7 +5307,7 @@ function getBlankXml($type)
     $function = 'Pulsestorm\Magento2\Cli\Xml_Template';
     $function .= '\getBlankXml' . ucWords(strToLower($type));
     if(function_exists($function))
-    {        
+    {
         return call_user_func($function);
     }
     throw new Exception("No such type, $type ($function)");
@@ -5853,7 +5853,7 @@ function pestle_cli($argv)
 function pestle_cli_exported($argv, $options=[])
 {
     return pestle_cli($argv, $options);
-}    
+}
 }
 namespace Pulsestorm\Magento2\Cli\Generate\Mage2_Command{
 use function Pulsestorm\Pestle\Importer\pestle_import;
@@ -5865,7 +5865,7 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 /**
 * Generates pestle command boiler plate
-* This command creates the necessary files 
+* This command creates the necessary files
 * for a pestle command
 *
 *     pestle.phar generate_pestle_command command_name
@@ -5878,13 +5878,13 @@ function pestle_cli($argv)
 {
     $command_name = $argv['command_name'];
     $namespace = \Pulsestorm\Cli\Code_Generation\createNamespaceFromNamespaceAndCommandName($argv['namespace_module'], $command_name);
-            
+
     $command = '<' . '?php' . "\n" .
         'namespace ' . $namespace . ';'  . "\n" .
         'use function Pulsestorm\Pestle\Importer\pestle_import;'       . "\n" .
         'pestle_import(\'Pulsestorm\Pestle\Library\output\');' . "\n\n" .
         'pestle_import(\'Pulsestorm\Pestle\Library\exitWithErrorMessage\');' . "\n\n" .
-        
+
 
         '/**' . "\n" .
         '* One Line Description' . "\n" .
@@ -5892,13 +5892,13 @@ function pestle_cli($argv)
         '* @command '.$command_name.'' . "\n" .
         '*/' . "\n" .
         'function pestle_cli($argv)' . "\n" .
-        '{' . "\n" .        
+        '{' . "\n" .
         '    output("Hello Sailor");' . "\n" .
         '}' . "\n";
-        
-    \Pulsestorm\Pestle\Library\output("Creating the following module");        
+
+    \Pulsestorm\Pestle\Library\output("Creating the following module");
     \Pulsestorm\Pestle\Library\output($command);
-    
+
     $path_full = \Pulsestorm\Cli\Code_Generation\createPathFromNamespace($namespace);
 
     if(file_exists($path_full))
@@ -5910,7 +5910,7 @@ function pestle_cli($argv)
     \Pulsestorm\Pestle\Library\writeStringToFile($path_full, $command);
     \Pulsestorm\Pestle\Library\output("bbedit $path_full");
     \Pulsestorm\Pestle\Library\output("sublime $path_full");
-    \Pulsestorm\Pestle\Library\output("vi $path_full");    
+    \Pulsestorm\Pestle\Library\output("vi $path_full");
 }
 
 function pestle_cli_exported($argv, $options=[])
@@ -5926,9 +5926,9 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 /**
 * Generates registration.php
-* This command generates the PHP code for a 
+* This command generates the PHP code for a
 * Magento module registration.php file.
-* 
+*
 *     $ pestle.phar generate_registration Foo_Bar
 *     <?php
 *         \Magento\Framework\Component\ComponentRegistrar::register(
@@ -5936,14 +5936,14 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 *             'Foo_Bar',
 *             __DIR__
 *         );
-* 
+*
 * @command generate-registration
-* @argument module_name Which Module? [Vendor_Module] 
+* @argument module_name Which Module? [Vendor_Module]
 */
 function pestle_cli($argv)
 {
     $module_name = $argv['module_name'];
-    
+
     \Pulsestorm\Pestle\Library\output(\Pulsestorm\Cli\Code_Generation\templateRegistrationPhp($module_name));
 }
 
@@ -5977,10 +5977,10 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 * @argument email Admin Email? [astorm@alanstorm.com]
 */
 function pestle_cli($argv)
-{    
+{
     //$composer_package .= '=2.1.0-rc1';
     extract($argv);
-    
+
     $db_name = preg_replace('%[^a-zA-Z0-9]%','_', $id_key);
     $url     = preg_replace('%[^a-zA-Z0-9]%','-', $id_key) . '.dev';
     $cmds = [];
@@ -5990,10 +5990,10 @@ function pestle_cli($argv)
     $cmds[] = "echo \"We're about to ask for your MySQL password so we can create the database\"";
     $cmds[] = "echo 'CREATE DATABASE $db_name' | mysql -uroot -p";
 
-    $cmds[] = "php bin/magento setup:install --admin-email $admin_email --admin-firstname $admin_first_name --admin-lastname $admin_last_name --admin-password $admin_password --admin-user $admin_user --backend-frontname admin --base-url http://$url --db-host 127.0.0.1 --db-name $db_name --db-password $db_pass --db-user $db_user --session-save files --use-rewrites 1 --use-secure 0 -vvv";    
-    $cmds[] = 'php bin/magento sampledata:deploy';    
+    $cmds[] = "php bin/magento setup:install --admin-email $admin_email --admin-firstname $admin_first_name --admin-lastname $admin_last_name --admin-password $admin_password --admin-user $admin_user --backend-frontname admin --base-url http://$url --db-host 127.0.0.1 --db-name $db_name --db-password $db_pass --db-user $db_user --session-save files --use-rewrites 1 --use-secure 0 -vvv";
+    $cmds[] = 'php bin/magento sampledata:deploy';
     $cmds[] = 'php bin/magento cache:enable';
-    
+
     array_map(function($cmd){
         \Pulsestorm\Pestle\Library\output($cmd);
     }, $cmds);
@@ -6038,27 +6038,27 @@ function insertConstrctorIntoPhpClassFileTokens($tokens)
     $c      = 0;
     foreach($tokens as $token)
     {
-        $new_tokens[] = $token;    
+        $new_tokens[] = $token;
         if($state === 0 && $token->token_name === 'T_CLASS')
-        {            
+        {
             $state = FOUND_CLASS_KEYWORD;
         }
-        
+
         if($state === FOUND_CLASS_KEYWORD && $token->token_value === '{')
         {
             $state = FOUND_OPENING_CLASS_BRACKET;
             $tmp = new stdClass;
             //$tmp->token_value = "\n" . $indent . '#Property Here' . "\n";
-            $tmp->token_value = "\n" . $indent  .   
+            $tmp->token_value = "\n" . $indent  .
                 'public function __construct()' . "\n" .
                 $indent . '{' . "\n" . $indent . '}' . "\n";
-            
-            $new_tokens[] = $tmp;           
-        }        
-        
+
+            $new_tokens[] = $tmp;
+        }
+
         $c++;
     }
-    
+
     return \Pulsestorm\Cli\Token_Parse\pestle_token_get_all(implodeTokensIntoContents($new_tokens));
 }
 
@@ -6067,7 +6067,7 @@ function implodeTokensIntoContents($tokens)
     $values = array_map(function($token){
         return $token->token_value;
     }, $tokens);
-        
+
     return implode('', $values);
 }
 
@@ -6082,14 +6082,14 @@ function addCommaIfSpoolBackwardsRevealsConstructorParam($tokens)
         {
             return $tokens;
         }
-        
+
         //found whitespace. Remove, continue backwards
         if($token->token_name === 'T_WHITESPACE')
         {
             continue;
         }
-        
-        //if we get here, that means there IS another param, slide on 
+
+        //if we get here, that means there IS another param, slide on
         //the comma and then return the tokens
         $tmp = new stdClass;
         $tmp->token_value = ',';
@@ -6097,9 +6097,9 @@ function addCommaIfSpoolBackwardsRevealsConstructorParam($tokens)
         $after  = array_slice($tokens, $i+1);
         // $new_tokens = $tokens;
         $new_tokens = array_merge($before, [$tmp], $after);
-        return $new_tokens; 
+        return $new_tokens;
     }
-    
+
     return $tokens;
 }
 
@@ -6123,9 +6123,9 @@ function original($argv)
         $argv = [\Pulsestorm\Pestle\Library\input("Which class?", 'Pulsestorm\Helloworld\Helper\Config')];
     }
     $class = array_shift($argv);
-    
-    \Pulsestorm\Pestle\Library\output("DI Lines");   
-    \Pulsestorm\Pestle\Library\output('-----------------------');             
+
+    \Pulsestorm\Pestle\Library\output("DI Lines");
+    \Pulsestorm\Pestle\Library\output('-----------------------');
     \Pulsestorm\Pestle\Library\output(implode("\n",\Pulsestorm\Magento2\Cli\Library\getDiLinesFromMage2ClassName($class)));
     \Pulsestorm\Pestle\Library\output('');
 }
@@ -6143,18 +6143,18 @@ function defineStates()
 function injectDependencyArgumentIntoFile($class, $file, $propName=false)
 {
     $di_lines = (object) \Pulsestorm\Magento2\Cli\Library\getDiLinesFromMage2ClassName($class, $propName);
-    $di_lines->parameter = trim(trim($di_lines->parameter,','));        
-    
+    $di_lines->parameter = trim(trim($di_lines->parameter,','));
+
     $indent   = getClassIndent();
     $contents = file_get_contents($file);
-    $tokens   = \Pulsestorm\Cli\Token_Parse\pestle_token_get_all($contents);    
-    
+    $tokens   = \Pulsestorm\Cli\Token_Parse\pestle_token_get_all($contents);
+
     $has_constructor = arrayContainsConstructToken($tokens);
     if(!$has_constructor)
     {
         $tokens = insertConstrctorIntoPhpClassFileTokens($tokens);
     }
-        
+
     $state  = 0;
     $c      = 0;
     $new_tokens = [];
@@ -6162,10 +6162,10 @@ function injectDependencyArgumentIntoFile($class, $file, $propName=false)
     {
         $new_tokens[] = $token;
         if($state === 0 && $token->token_name === 'T_CLASS')
-        {            
+        {
             $state = FOUND_CLASS_KEYWORD;
         }
-        
+
         if($state === FOUND_CLASS_KEYWORD && $token->token_value === '{')
         {
             $state = FOUND_OPENING_CLASS_BRACKET;
@@ -6173,63 +6173,63 @@ function injectDependencyArgumentIntoFile($class, $file, $propName=false)
             //$tmp->token_value = "\n" . $indent . '#Property Here' . "\n";
             $comment = $indent . '/**' . "\n" .
                 $indent . '* Injected Dependency Description' . "\n" .
-                $indent . '* ' . "\n" .                                
+                $indent . '* ' . "\n" .
                 $indent . '* @var \\'.$class.'' . "\n" .
                 $indent . '*/' . "\n";
-                $tmp->token_value = "\n" . $comment .            
+                $tmp->token_value = "\n" . $comment .
                     $indent . $di_lines->property . "\n";
-            
-            $new_tokens[] = $tmp;           
+
+            $new_tokens[] = $tmp;
         }
-        
+
         if($state === FOUND_OPENING_CLASS_BRACKET && $token->token_value === '__construct')
         {
             $state = FOUND_CONSTRUCT;
         }
-        
+
         if($state === FOUND_CONSTRUCT && $token->token_value === ')')
         {
             $state = FOUND_CONSTRUCT_CLOSE_PAREN;
             $tmp = new stdClass;
             $tmp->token_value = "\n" . $indent . $indent . $di_lines->parameter;
-            
+
 
             $current_token = array_pop($new_tokens);
             $new_tokens   = trimWhitespaceFromEndOfTokenArray($new_tokens);
             $new_tokens   = addCommaIfSpoolBackwardsRevealsConstructorParam(
                 $new_tokens);
-                
-                            
-            $new_tokens[] = $tmp;             
-            $new_tokens[] = $current_token;             
+
+
+            $new_tokens[] = $tmp;
+            $new_tokens[] = $current_token;
         }
-        
+
         if($state === FOUND_CONSTRUCT_CLOSE_PAREN && $token->token_value === '{')
         {
             $state = FOUND_CONSTRUCT_OPEN_BRACKET;
             $tmp = new stdClass;
             // $tmp->token_value = "\n" . $indent . '#Property Assignment Here' . "\n";
-            $tmp->token_value = "\n" . $indent . $indent . 
+            $tmp->token_value = "\n" . $indent . $indent .
                 $di_lines->assignment;
-            
-            $new_tokens[] = $tmp;              
+
+            $new_tokens[] = $tmp;
         }
 
         $c++;
     }
-    
+
     $contents = implodeTokensIntoContents($new_tokens);
     \Pulsestorm\Pestle\Library\output("Injecting $class into $file");
-    \Pulsestorm\Pestle\Library\writeStringToFile($file, $contents); 
+    \Pulsestorm\Pestle\Library\writeStringToFile($file, $contents);
 }
 
 /**
 * Injects a dependency into a class constructor
-* This command modifies a preexisting class, adding the provided 
-* dependency to that class's property list, `__construct` parameters 
+* This command modifies a preexisting class, adding the provided
+* dependency to that class's property list, `__construct` parameters
 * list, and assignment list.
 *
-*    pestle.phar generate_di app/code/Pulsestorm/Generate/Command/Example.php 'Magento\Catalog\Model\ProductFactory' 
+*    pestle.phar generate_di app/code/Pulsestorm/Generate/Command/Example.php 'Magento\Catalog\Model\ProductFactory'
 *
 * @command generate-di
 * @argument file Which PHP class file are we injecting into?
@@ -6243,10 +6243,10 @@ function pestle_cli($argv)
     if(!$file)
     {
         exit("Could not find " . $argv['file'] . ".\n");
-    }     
+    }
     $class = $argv['class'];
 
-    injectDependencyArgumentIntoFile($class, $file);       
+    injectDependencyArgumentIntoFile($class, $file);
 }
 
 function exported_pestle_cli($argv)
@@ -6460,7 +6460,7 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 /**
 * Generates Magento 2 Observer
-* This command generates the necessary files and configuration to add 
+* This command generates the necessary files and configuration to add
 * an event observer to a Magento 2 system.
 *
 *    pestle.phar generate_observer Pulsestorm_Generate controller_action_predispatch pulsestorm_generate_listener3 'Pulsestorm\Generate\Model\Observer3'
@@ -6480,11 +6480,11 @@ function pestle_cli($argv)
     $method_name    = 'execute';
 
     $path_xml_event = \Pulsestorm\Magento2\Cli\Library\initilizeModuleConfig(
-        $module, 
-        'events.xml', 
+        $module,
+        'events.xml',
         'urn:magento:framework:Event/etc/events.xsd'
     );
-                    
+
     $xml = simplexml_load_file($path_xml_event);
     $nodes = $xml->xpath('//event[@name="' . $event_name . '"]');
     $node  = array_shift($nodes);
@@ -6492,7 +6492,7 @@ function pestle_cli($argv)
     if(!$node)
     {
         $event = $node ? $node : $xml->addChild('event');
-        $event->addAttribute('name', $event_name);    
+        $event->addAttribute('name', $event_name);
     }
     $observer = $event->addChild('observer');
     $observer->addAttribute('name',     $observer_name);
@@ -6501,14 +6501,14 @@ function pestle_cli($argv)
 
     \Pulsestorm\Pestle\Library\output("Creating: $path_xml_event");
     $path = \Pulsestorm\Pestle\Library\writeStringToFile($path_xml_event, $xml->asXml());
-    
+
     \Pulsestorm\Pestle\Library\output("Creating: $model_name");
     $contents = \Pulsestorm\Cli\Code_Generation\createClassTemplate($model_name, false, '\Magento\Framework\Event\ObserverInterface');
-    $contents = str_replace('<$body$>', 
-    "\n" . 
+    $contents = str_replace('<$body$>',
+    "\n" .
     '    public function execute(\Magento\Framework\Event\Observer $observer){exit(__FILE__);}' .
     "\n" , $contents);
-    \Pulsestorm\Magento2\Cli\Library\createClassFile($model_name, $contents);    
+    \Pulsestorm\Magento2\Cli\Library\createClassFile($model_name, $contents);
 }
 
 function exported_pestle_cli($argv)
@@ -6523,8 +6523,8 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 /**
 * ALPHA: Is this needed/working anymore?
-* This command will generate the layout handle XML 
-* files needed to add a block to Magento's page 
+* This command will generate the layout handle XML
+* files needed to add a block to Magento's page
 * layout
 *
 * @command generate-layout-xml
@@ -6555,14 +6555,14 @@ function createFrontendFolders($base_folder, $package, $theme, $area)
     //fonts
     //images
     //js
-    
+
     $folders = [
         $base_folder . '/web/css/source',
         $base_folder . '/fonts',
         $base_folder . '/images',
-        $base_folder . '/js',                        
+        $base_folder . '/js',
     ];
-    
+
     foreach($folders as $folder)
     {
         if(!is_dir($folder))
@@ -6579,29 +6579,29 @@ function createFrontendFolders($base_folder, $package, $theme, $area)
 
 function createThemeXmlFile($base_folder, $package, $theme, $area, $parent_name)
 {
-    $path = $base_folder . '/theme.xml';    
+    $path = $base_folder . '/theme.xml';
     $xml  = simplexml_load_string(\Pulsestorm\Magento2\Cli\Xml_Template\getBlankXml('theme'));
-    
+
     $title  = \Pulsestorm\Xml_Library\simpleXmlAddNodesXpath($xml, 'title');
     dom_import_simplexml($title)->nodeValue = ucwords($package . ' ' . $theme);
-    
+
     if($parent_name)
     {
         $parent = \Pulsestorm\Xml_Library\simpleXmlAddNodesXpath($xml, 'parent');
         dom_import_simplexml($parent)->nodeValue = $parent_name;
     }
     $image  = \Pulsestorm\Xml_Library\simpleXmlAddNodesXpath($xml, 'media/preview_image');
-    
+
     \Pulsestorm\Pestle\Library\output("Creating: $path");
     \Pulsestorm\Pestle\Library\writeStringToFile($path, \Pulsestorm\Xml_Library\formatXmlString($xml->asXml()));
 }
 
 function createRegistrationPhpFile($base_folder, $package, $theme, $area)
 {
-    $path = $base_folder . '/registration.php';    
+    $path = $base_folder . '/registration.php';
     $registration_string = $area . '/' . $package . '/' . $theme;
     $registration = \Pulsestorm\Cli\Code_Generation\templateRegistrationPhp($registration_string, 'THEME');
-    
+
     \Pulsestorm\Pestle\Library\output("Creating: $path");
     \Pulsestorm\Pestle\Library\writeStringToFile($path, $registration);
 
@@ -6609,11 +6609,11 @@ function createRegistrationPhpFile($base_folder, $package, $theme, $area)
 
 function createViewXmlFile($base_folder, $package, $theme, $area)
 {
-    $path  = $base_folder . '/etc/view.xml'; 
-    $xml   = simplexml_load_string(\Pulsestorm\Magento2\Cli\Xml_Template\getBlankXml('view')); 
+    $path  = $base_folder . '/etc/view.xml';
+    $xml   = simplexml_load_string(\Pulsestorm\Magento2\Cli\Xml_Template\getBlankXml('view'));
     $media = \Pulsestorm\Xml_Library\simpleXmlAddNodesXpath($xml, 'media');
     \Pulsestorm\Pestle\Library\output("Creating: $path");
-    \Pulsestorm\Pestle\Library\writeStringToFile($path, \Pulsestorm\Xml_Library\formatXmlString($xml->asXml()));    
+    \Pulsestorm\Pestle\Library\writeStringToFile($path, \Pulsestorm\Xml_Library\formatXmlString($xml->asXml()));
 }
 /**
 * Generates Magento 2 theme configuration
@@ -6630,7 +6630,7 @@ function createViewXmlFile($base_folder, $package, $theme, $area)
 function pestle_cli($argv)
 {
     $package = $argv['package'];
-    $theme   = $argv['theme'];    
+    $theme   = $argv['theme'];
     $area    = $argv['area'];
     $parent  = $argv['parent'];
     if(strpos($parent, 'null') !== false)
@@ -6648,9 +6648,9 @@ function pestle_cli($argv)
     //registration.php
     //view.xml
 
-    
-    
-                
+
+
+
     \Pulsestorm\Pestle\Library\output($base_folder);
     \Pulsestorm\Pestle\Library\output("Done");
 }
@@ -6675,7 +6675,7 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 
 function getDiXmlTemplate($config_attributes='xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd"')
-{   
+{
     if(!$config_attributes)
     {
         $config_attributes = 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd"';
@@ -6696,11 +6696,11 @@ function underscoreClass($class)
 
 /**
 * Generates plugin XML
-* This command generates the necessary files and configuration 
-* to "plugin" to a preexisting Magento 2 object manager object. 
+* This command generates the necessary files and configuration
+* to "plugin" to a preexisting Magento 2 object manager object.
 *
 *     pestle.phar generate_plugin_xml Pulsestorm_Helloworld 'Magento\Framework\Logger\Monolog' 'Pulsestorm\Helloworld\Plugin\Magento\Framework\Logger\Monolog'
-* 
+*
 * @argument module_name Create in which module? [Pulsestorm_Helloworld]
 * @argument class Which class are you plugging into? [Magento\Framework\Logger\Monolog]
 * @argument class_plugin What's your plugin class name? [<$module_name$>\Plugin\<$class$>]
@@ -6718,34 +6718,34 @@ function pestle_cli($argv, $options)
     $path_di = $module_info->folder . '/etc/di.xml';
     if(!file_exists($path_di))
     {
-        $xml =  simplexml_load_string(\Pulsestorm\Magento2\Cli\Xml_Template\getBlankXml('di'));           
+        $xml =  simplexml_load_string(\Pulsestorm\Magento2\Cli\Xml_Template\getBlankXml('di'));
         \Pulsestorm\Pestle\Library\writeStringToFile($path_di, $xml->asXml());
         \Pulsestorm\Pestle\Library\output("Created new $path_di");
     }
-    
+
     $class = ltrim($class, '\\');
-    
-    $xml            =  simplexml_load_file($path_di);   
+
+    $xml            =  simplexml_load_file($path_di);
 //     $plugin_name    = strToLower($module_info->name) . '_' . underscoreClass($class);
 //     simpleXmlAddNodesXpath($xml,
 //         "/type[@name=$class]/plugin[@name=$plugin_name,@type=$class_plugin]");
-             
+
     $type = $xml->addChild('type');
     $type->addAttribute('name', $class);
     $plugin = $type->addChild('plugin');
-    
+
     $plugin->addAttribute('name',strToLower($module_info->name) . '_' . underscoreClass($class));
     $plugin->addAttribute('type',$class_plugin);
-    
+
     \Pulsestorm\Pestle\Library\writeStringToFile($path_di, \Pulsestorm\Xml_Library\formatXmlString($xml->asXml()));
     \Pulsestorm\Pestle\Library\output("Added nodes to $path_di");
-    
+
     $typeHint = '';
     if($useTypeHint)
     {
         $typeHint = '\\' . $class . ' ';
     }
-    $path_plugin = \Pulsestorm\Magento2\Cli\Path_From_Class\getPathFromClass($class_plugin);  
+    $path_plugin = \Pulsestorm\Magento2\Cli\Path_From_Class\getPathFromClass($class_plugin);
     $body = implode("\n", [
         '    //function beforeMETHOD(' . $typeHint . '$subject, $arg1, $arg2){}',
         '    //function aroundMETHOD(' . $typeHint . '$subject, $proceed, $arg1, $arg2){return $proceed($arg1, $arg2);}',
@@ -6976,19 +6976,19 @@ define('BASE_MODEL_CLASS'       , '\Magento\Framework\Model\AbstractModel');
 
 function getCollectionClassNameFromModuleInfo($moduleInfo, $modelName)
 {
-    return $moduleInfo->vendor . '\\' . $moduleInfo->short_name . 
+    return $moduleInfo->vendor . '\\' . $moduleInfo->short_name .
         '\Model\ResourceModel\\' . $modelName . '\Collection';
 }
 
 function getResourceModelClassNameFromModuleInfo($moduleInfo, $modelName)
 {
-    return $moduleInfo->vendor . '\\' . $moduleInfo->short_name . 
+    return $moduleInfo->vendor . '\\' . $moduleInfo->short_name .
         '\Model\ResourceModel\\' . $modelName;
 }
 
 function getModelClassNameFromModuleInfo($moduleInfo, $modelName)
 {
-    return $moduleInfo->vendor . '\\' . $moduleInfo->short_name . 
+    return $moduleInfo->vendor . '\\' . $moduleInfo->short_name .
         '\Model\\' . $modelName;
 }
 
@@ -7153,8 +7153,8 @@ function templateRepositoryInterfaceAbstractFunction($modelShortInterface)
      * @throws \Magento\Framework\Exception\NoSuchEntityException If customer with the specified ID does not exist.
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function deleteById(\$id);    
-";    
+    public function deleteById(\$id);
+";
 }
 
 function templateRepositoryInterfaceUse($longModelInterfaceName)
@@ -7175,8 +7175,8 @@ function templateComplexInterface($useContents, $methodContents, $interfaceConte
         '%\{\s*\}%six',
         '{' . rtrim($methodContents) . "\n" . '}' . "\n",
         $interfaceContents
-    );        
-    
+    );
+
     return $interfaceContents;
 }
 
@@ -7184,23 +7184,23 @@ function createRepositoryInterfaceContents($moduleInfo, $modelName, $interface)
 {
     $modelInterface             = getModelInterfaceShortName($modelName);
     $modelInterfaceLongName     = getModelInterfaceName($moduleInfo, $modelName);
-    
-    $contents                   = \Pulsestorm\Cli\Code_Generation\templateInterface($interface,[]);   
+
+    $contents                   = \Pulsestorm\Cli\Code_Generation\templateInterface($interface,[]);
     $contentsAbstractFunctions  = templateRepositoryInterfaceAbstractFunction($modelInterface);
     $contentsUse                = templateRepositoryInterfaceUse($modelInterfaceLongName);
-    
+
     $contents = templateComplexInterface($contentsUse, $contentsAbstractFunctions, $contents);
-    
+
     return $contents;
 }
 
 function getModelRepositoryName($modelName)
 {
-    return $modelName . 'Repository';    
+    return $modelName . 'Repository';
 }
 
 function templateUseFunctions($repositoryInterface, $thingInterface, $classModel, $collectionModel, $classResourceModel)
-{        
+{
     $thingFactory   = $classModel . 'Factory';
     $resourceModel  = $collectionModel . 'Factory';
     $nameSpace      = explode('\\', $classModel)[0];
@@ -7356,24 +7356,24 @@ function createRepository($moduleInfo, $modelName)
     $interface          = getModuleInterfaceName($moduleInfo, $repositoryName, 'Api');
     $interfaceShortName = getModelInterfaceShortName($repositoryName);
     $template           = \Pulsestorm\Cli\Code_Generation\createClassTemplate($repositoryFullName, false, $interfaceShortName, true);
-    
+
     $body               = templateRepositoryFunctions($modelName);
     $use                = templateUseFunctions($interface, $modelInterface, $classModel, $classCollection, $classResourceModel);
     $contents           = $template;
     $contents           = str_replace('<$body$>', $body, $contents);
     $contents           = str_replace('<$use$>' , $use,  $contents);
-    
-    $path               = \Pulsestorm\Magento2\Cli\Path_From_Class\getPathFromClass($repositoryFullName);        
+
+    $path               = \Pulsestorm\Magento2\Cli\Path_From_Class\getPathFromClass($repositoryFullName);
     \Pulsestorm\Pestle\Library\output("Creating: " . $path);
-    
-    \Pulsestorm\Pestle\Library\writeStringToFile($path, $contents);    
+
+    \Pulsestorm\Pestle\Library\writeStringToFile($path, $contents);
 }
 
 function createRepositoryInterface($moduleInfo, $modelName)
-{    
+{
     $repositoryName = getModelRepositoryName($modelName);
     $interface      = getModuleInterfaceName($moduleInfo, $repositoryName, 'Api');
-    $path           = \Pulsestorm\Magento2\Cli\Path_From_Class\getPathFromClass($interface);    
+    $path           = \Pulsestorm\Magento2\Cli\Path_From_Class\getPathFromClass($interface);
     $contents       = createRepositoryInterfaceContents($moduleInfo, $modelName, $interface);
     \Pulsestorm\Pestle\Library\output("Creating: " . $path);
     \Pulsestorm\Pestle\Library\writeStringToFile($path, $contents);
@@ -7385,7 +7385,7 @@ function createCollectionClass($moduleInfo, $modelName)
     $class_collection       = getCollectionClassNameFromModuleInfo($moduleInfo, $modelName);
     $class_model            = getModelClassNameFromModuleInfo($moduleInfo, $modelName);
     $class_resource         = getResourceModelClassNameFromModuleInfo($moduleInfo, $modelName);
-            
+
     $template               = \Pulsestorm\Cli\Code_Generation\createClassTemplate($class_collection, BASE_COLLECTION_CLASS);
     $construct              = templateConstruct($class_model, $class_resource);
 
@@ -7410,13 +7410,13 @@ function createResourceModelClass($moduleInfo, $modelName)
     // $db_table               = strToLower($moduleInfo->name . '_' . $modelName);
     $db_table               = createDbTableNameFromModuleInfoAndModelShortName($moduleInfo, $modelName);
     // $db_id                  = strToLower($db_table) . '_id';
-    $db_id                  = createDbIdFromModuleInfoAndModelShortName($moduleInfo, $modelName);    
+    $db_id                  = createDbIdFromModuleInfoAndModelShortName($moduleInfo, $modelName);
     $class_resource         = getResourceModelClassNameFromModuleInfo($moduleInfo, $modelName);
-    $template               = \Pulsestorm\Cli\Code_Generation\createClassTemplate($class_resource, BASE_RESOURCE_CLASS);    
+    $template               = \Pulsestorm\Cli\Code_Generation\createClassTemplate($class_resource, BASE_RESOURCE_CLASS);
     $construct              = templateConstruct($db_table, $db_id);
-    $class_contents         = str_replace('<$body$>', $construct, $template);    
+    $class_contents         = str_replace('<$body$>', $construct, $template);
     \Pulsestorm\Pestle\Library\output("Creating: " . $path);
-    \Pulsestorm\Pestle\Library\writeStringToFile($path, $class_contents);    
+    \Pulsestorm\Pestle\Library\writeStringToFile($path, $class_contents);
 }
 
 function templateGetIdentities()
@@ -7451,19 +7451,19 @@ function createModelClass($moduleInfo, $modelName)
     $template            = \Pulsestorm\Cli\Code_Generation\createClassTemplate($class_model, BASE_MODEL_CLASS, $implements);
     $construct           = templateConstruct($class_resource);
 
-    $body                = 
-        templateCacheTag($cache_tag)    .      
+    $body                =
+        templateCacheTag($cache_tag)    .
         $construct                      .
         templateGetIdentities();
 
-    $class_contents      = str_replace('<$body$>', $body, $template);    
+    $class_contents      = str_replace('<$body$>', $body, $template);
     \Pulsestorm\Pestle\Library\output("Creating: " . $path);
-    \Pulsestorm\Pestle\Library\writeStringToFile($path, $class_contents);    
+    \Pulsestorm\Pestle\Library\writeStringToFile($path, $class_contents);
 }
 
 function getModuleInterfaceName($moduleInfo, $modelName, $type)
 {
-    return $moduleInfo->vendor . '\\' . $moduleInfo->short_name . 
+    return $moduleInfo->vendor . '\\' . $moduleInfo->short_name .
         '\\' . $type .'\\' . getModelInterfaceShortName($modelName);
 
 }
@@ -7471,7 +7471,7 @@ function getModuleInterfaceName($moduleInfo, $modelName, $type)
 function getModelInterfaceName($moduleInfo, $modelName)
 {
     return getModuleInterfaceName($moduleInfo, $modelName, 'Api\\Data');
-//     return $moduleInfo->vendor . '\\' . $moduleInfo->short_name . 
+//     return $moduleInfo->vendor . '\\' . $moduleInfo->short_name .
 //         '\Model\\' . getModelInterfaceShortName($modelName);
 }
 
@@ -7506,14 +7506,14 @@ function generateClassNameAndInterfaceNameForSchemaFromModuleInfoAndOptions(
     //UpgradeSchema
     if(isUseUpgradeSchema($options))
     {
-        $className      = generateUpgradeSchemaClassName($moduleInfo);        
-        $interfaceName  = '\Magento\Framework\Setup\UpgradeSchemaInterface';    
+        $className      = generateUpgradeSchemaClassName($moduleInfo);
+        $interfaceName  = '\Magento\Framework\Setup\UpgradeSchemaInterface';
     }
-    
-    
+
+
     return [
         $className, $interfaceName];
-}    
+}
 
 function isUseUpgradeSchema($options)
 {
@@ -7527,14 +7527,14 @@ function generateSchemaBodyFromModuleInfoAndOptions($moduleInfo, $options)
     {
         $body = templateUpgradeFunction();
     }
-    return $body;    
+    return $body;
 }
 
 function conditionalWriteStringToFile($path, $contents)
 {
     if(!file_exists($path))
     {
-        \Pulsestorm\Pestle\Library\output("Creating: " . $path);        
+        \Pulsestorm\Pestle\Library\output("Creating: " . $path);
         \Pulsestorm\Pestle\Library\writeStringToFile($path, $contents);
     }
     else
@@ -7550,7 +7550,7 @@ function prependInstallerCodeBeforeEndSetup($moduleInfo, $modelName, $path)
     $install_code = \Pulsestorm\Cli\Code_Generation\generateInstallSchemaTable($table_name, $modelName);
     $contents     = file_get_contents($path);
     $end_setup    = '        $installer->endSetup();';
-    $contents     = str_replace($end_setup, 
+    $contents     = str_replace($end_setup,
         "\n        //START table setup\n" .
         $install_code .
         "\n        //END   table setup\n" .
@@ -7560,56 +7560,56 @@ function prependInstallerCodeBeforeEndSetup($moduleInfo, $modelName, $path)
 
 function appendInstallSchemaClass($moduleInfo, $modelName, $options)
 {
-    list($className, $interfaceName) = 
+    list($className, $interfaceName) =
         generateClassNameAndInterfaceNameForSchemaFromModuleInfoAndOptions(
             $moduleInfo, $options);
-    $path       = \Pulsestorm\Magento2\Cli\Path_From_Class\getPathFromClass($className);         
+    $path       = \Pulsestorm\Magento2\Cli\Path_From_Class\getPathFromClass($className);
     $contents = prependInstallerCodeBeforeEndSetup(
-        $moduleInfo, $modelName, $path); 
+        $moduleInfo, $modelName, $path);
 
-    \Pulsestorm\Pestle\Library\output("Adding model to InstallSchema");        
-    \Pulsestorm\Pestle\Library\writeStringToFile($path, $contents);                              
+    \Pulsestorm\Pestle\Library\output("Adding model to InstallSchema");
+    \Pulsestorm\Pestle\Library\writeStringToFile($path, $contents);
 }
 
 function createSchemaClass($moduleInfo, $modelName, $options)
 {
-    list($className, $interfaceName) = 
+    list($className, $interfaceName) =
         generateClassNameAndInterfaceNameForSchemaFromModuleInfoAndOptions(
             $moduleInfo, $options);
-            
+
     $path       = \Pulsestorm\Magento2\Cli\Path_From_Class\getPathFromClass($className);
-    $template   = \Pulsestorm\Cli\Code_Generation\createClassTemplate($className, false, $interfaceName);        
-        
-    $classBody = generateSchemaBodyFromModuleInfoAndOptions($moduleInfo, $options);        
-    $contents   = str_replace('<$body$>', $classBody, $template); 
-    conditionalWriteStringToFile($path, $contents);   
-    
+    $template   = \Pulsestorm\Cli\Code_Generation\createClassTemplate($className, false, $interfaceName);
+
+    $classBody = generateSchemaBodyFromModuleInfoAndOptions($moduleInfo, $options);
+    $contents   = str_replace('<$body$>', $classBody, $template);
+    conditionalWriteStringToFile($path, $contents);
+
     $contents = prependInstallerCodeBeforeEndSetup(
         $moduleInfo, $modelName, $path);
-            
+
     \Pulsestorm\Pestle\Library\writeStringToFile($path, $contents);
 }
 
 function generateUpgradeDataClassName($moduleInfo)
 {
-    $className  = str_replace('_', '\\', $moduleInfo->name) . 
+    $className  = str_replace('_', '\\', $moduleInfo->name) .
         '\Setup\UpgradeData';
     return $className;
 }
 
 function generateClassNameAndInterfaceNameForDataFromModuleInfoAndOptions($moduleInfo, $options)
 {
-    $className  = str_replace('_', '\\', $moduleInfo->name) . 
+    $className  = str_replace('_', '\\', $moduleInfo->name) .
         '\Setup\InstallData';
-    $interfaceName = '\Magento\Framework\Setup\InstallDataInterface';    
-    
+    $interfaceName = '\Magento\Framework\Setup\InstallDataInterface';
+
     if(isUseUpgradeSchema($options))
     {
         $className = generateUpgradeDataClassName($moduleInfo);
 
-        $interfaceName = '\Magento\Framework\Setup\UpgradeDataInterface';        
+        $interfaceName = '\Magento\Framework\Setup\UpgradeDataInterface';
     }
-        
+
     return [$className, $interfaceName];
 }
 
@@ -7618,36 +7618,36 @@ function generateDataBodyFromOptions($options)
     $body = templateInstallDataFunction();
     if(isUseUpgradeSchema($options))
     {
-        $body = templateUpgradeDataFunction();        
+        $body = templateUpgradeDataFunction();
     }
-    
+
     return $body;
 }
 
 function createDataClass($moduleInfo, $modelName, $options)
 {
-    list($className, $interfaceName) = 
+    list($className, $interfaceName) =
         generateClassNameAndInterfaceNameForDataFromModuleInfoAndOptions(
             $moduleInfo, $options);
 
     $path       = \Pulsestorm\Magento2\Cli\Path_From_Class\getPathFromClass($className);
-    $template   = \Pulsestorm\Cli\Code_Generation\createClassTemplate($className, false, $interfaceName);        
+    $template   = \Pulsestorm\Cli\Code_Generation\createClassTemplate($className, false, $interfaceName);
     $classBody  = generateDataBodyFromOptions($options);
-    $contents   = str_replace('<$body$>', $classBody, $template);        
+    $contents   = str_replace('<$body$>', $classBody, $template);
 
-    conditionalWriteStringToFile($path, $contents);       
+    conditionalWriteStringToFile($path, $contents);
 }
 
 function generateUpgradeSchemaClassName($moduleInfo)
 {
-    $className  = str_replace('_', '\\', $moduleInfo->name) . 
+    $className  = str_replace('_', '\\', $moduleInfo->name) .
         '\Setup\UpgradeSchema';
     return $className;
 }
 
 function generateInstallSchemaClassName($moduleInfo)
 {
-    $className  = str_replace('_', '\\', $moduleInfo->name) . 
+    $className  = str_replace('_', '\\', $moduleInfo->name) .
         '\Setup\InstallSchema';
     return $className;
 }
@@ -7656,16 +7656,16 @@ function checkForUpgradeSchemaClass($moduleInfo, $modelName)
 {
     $className = generateUpgradeSchemaClassName($moduleInfo);
     $path      = \Pulsestorm\Magento2\Cli\Path_From_Class\getPathFromClass($className);
-    
+
     if(file_exists($path))
-    {    
-        $message = 
-"\nERROR: The module {$moduleInfo->name} already has a 
-defined {$className}.  
+    {
+        $message =
+"\nERROR: The module {$moduleInfo->name} already has a
+defined {$className}.
 
 We can't proceed. If you're using upgrade scripts, try
 the --use-upgrade-schema-with-scripts option.
-";        
+";
         \Pulsestorm\Pestle\Library\exitWithErrorMessage($message);
     }
 
@@ -7675,35 +7675,35 @@ function checkThatInstallSchemaClassExists($moduleInfo, $modelName)
 {
     $className = generateInstallSchemaClassName($moduleInfo);
     $path      = \Pulsestorm\Magento2\Cli\Path_From_Class\getPathFromClass($className);
-    
+
     if(!file_exists($path))
-    {  
-        $message = 
-"\nIt looks like this module does not has an InstallSchema class.  This means 
+    {
+        $message =
+"\nIt looks like this module does not has an InstallSchema class.  This means
 ee can't proceed.  The --use-install-schema-for-new-model options requires this
 class.  Try running the command with no -- options for initial generation.
-";                   
+";
 
-        \Pulsestorm\Pestle\Library\exitWithErrorMessage($message);    
-    }  
+        \Pulsestorm\Pestle\Library\exitWithErrorMessage($message);
+    }
 }
 
 function checkForInstallSchemaClass($moduleInfo, $modelName)
 {
     $className = generateInstallSchemaClassName($moduleInfo);
     $path      = \Pulsestorm\Magento2\Cli\Path_From_Class\getPathFromClass($className);
-    
+
     if(file_exists($path))
-    {  
-        $message = 
-"\nIt looks like this module already has an InstallSchema class.  This means 
-we can't proceed.  If you're trying to add a second model to a module, 
+    {
+        $message =
+"\nIt looks like this module already has an InstallSchema class.  This means
+we can't proceed.  If you're trying to add a second model to a module,
 try using --use-upgrade-schema, --use-upgrade-schema-with-scripts or
 --use-install-schema-for-new-model.
-";                   
+";
 
-        \Pulsestorm\Pestle\Library\exitWithErrorMessage($message);    
-    }  
+        \Pulsestorm\Pestle\Library\exitWithErrorMessage($message);
+    }
 
 }
 
@@ -7711,16 +7711,16 @@ function checkForNoInstallSchemaAndOurUpgrade($moduleInfo, $modelName)
 {
     $className = generateInstallSchemaClassName($moduleInfo);
     $path      = \Pulsestorm\Magento2\Cli\Path_From_Class\getPathFromClass($className);
-    
-    if(!file_exists($path))
-    {    
-        $message = 
-"The --use-upgrade-schema-with-scripts options requires an InstallSchema
-class to already be present.  
 
-Try creating your first crud model without any options, and use the 
---use-upgrade-schema-with-scripts options for your 2nd, 3rd, ..., nth 
-crud models. ";        
+    if(!file_exists($path))
+    {
+        $message =
+"The --use-upgrade-schema-with-scripts options requires an InstallSchema
+class to already be present.
+
+Try creating your first crud model without any options, and use the
+--use-upgrade-schema-with-scripts options for your 2nd, 3rd, ..., nth
+crud models. ";
         \Pulsestorm\Pestle\Library\exitWithErrorMessage($message);
     }
 
@@ -7735,12 +7735,12 @@ UpgradeSchema classes created via magento2:generate:schema-upgrade.
 
 The --use-upgrade-schema-with-scripts relies on an UpgradeSchema class
 that is compatible with magento2:generate:schema-upgrade.
-";        
+";
         \Pulsestorm\Pestle\Library\exitWithErrorMessage($message);
     }
 
     $path = \Pulsestorm\Magento2\Cli\Path_From_Class\getPathFromClass(
-        generateUpgradeDataClassName($moduleInfo));        
+        generateUpgradeDataClassName($moduleInfo));
     if(file_exists($path) && !\Pulsestorm\Magento2\Generate\SchemaUpgrade\classFileIsOurDataUpgrade($path))
     {
         $message =
@@ -7749,15 +7749,15 @@ UpgradeSchema classes created via magento2:generate:schema-upgrade.
 
 The --use-upgrade-schema-with-scripts relies on an UpgradeSchema class
 that is compatible with magento2:generate:schema-upgrade.
-";      
+";
         \Pulsestorm\Pestle\Library\exitWithErrorMessage($message);
     }
-    
+
 }
 
 function checkForSchemaOptions($keys)
 {
-    if( in_array('use-upgrade-schema',$keys) && 
+    if( in_array('use-upgrade-schema',$keys) &&
         in_array('use-upgrade-schema-with-scripts',$keys))
     {
         $message = 'Can\'t use --use-upgrade-schema and --use-upgrade-schema-with-scripts together.';
@@ -7771,14 +7771,14 @@ function checkForSchemaClasses($moduleInfo, $modelName, $options)
     {
         checkForUpgradeSchemaClass($moduleInfo, $modelName);
     }
-    else if(array_key_exists('use-upgrade-schema-with-scripts', $options))    
+    else if(array_key_exists('use-upgrade-schema-with-scripts', $options))
     {
         checkForNoInstallSchemaAndOurUpgrade($moduleInfo, $modelName);
-    }    
+    }
     else if(array_key_exists('use-install-schema-for-new-model', $options))
     {
         checkThatInstallSchemaClassExists($moduleInfo, $modelName);
-    }    
+    }
     else if(!array_key_exists('use-upgrade-schema-with-scripts', $options))
     {
         checkForInstallSchemaClass($moduleInfo, $modelName);
@@ -7813,27 +7813,27 @@ function invokeGenerateSchemaUpgrade($moduleInfo, $modelName, $options)
         'module_name'       => $moduleInfo->name,
         'upgrade_version'   => $version
     ],[]);
-    
-    $setupPath = \Pulsestorm\Magento2\Generate\SchemaUpgrade\getSetupScriptPathFromModuleInfo($moduleInfo, 'schema') . 
+
+    $setupPath = \Pulsestorm\Magento2\Generate\SchemaUpgrade\getSetupScriptPathFromModuleInfo($moduleInfo, 'schema') .
                     "/{$version}.php";
-    
+
     $table_name = createTableNameFromModuleInfoAndModelName(
         $moduleInfo, $modelName);
-    
+
     $contents = file_get_contents($setupPath);
     $contents .= "\n" . '$installer = $setup;' . "\n" . \Pulsestorm\Cli\Code_Generation\generateInstallSchemaTable($table_name, $modelName);
-    
-    \Pulsestorm\Pestle\Library\writeStringToFile($setupPath, $contents);                
+
+    \Pulsestorm\Pestle\Library\writeStringToFile($setupPath, $contents);
 }
 
 function createSchemaAndDataClasses($moduleInfo, $modelName, $options)
 {
     if(isUseUpgradeSchemaWithScripts($options))
-    {                   
+    {
         invokeGenerateSchemaUpgrade($moduleInfo, $modelName, $options);
         return;
     }
-    
+
     if(array_key_exists('use-install-schema-for-new-model', $options))
     {
         appendInstallSchemaClass($moduleInfo, $modelName, $options);
@@ -7862,7 +7862,7 @@ function validateModelName($modelName)
 *
 * Wrapped by magento:foo:baz ... version of command
 *
-* 
+*
 * @command generate-crud-model
 * @argument module_name Which module? [Pulsestorm_HelloGenerate]
 * @argument model_name  What model name? [Thing]
@@ -7877,18 +7877,18 @@ function pestle_cli($argv, $options)
     });
 
     $module_name = $argv['module_name'];
-    $moduleInfo = \Pulsestorm\Magento2\Cli\Library\getModuleInformation($argv['module_name']);    
+    $moduleInfo = \Pulsestorm\Magento2\Cli\Library\getModuleInformation($argv['module_name']);
     $modelName  = validateModelName($argv['model_name']);
-    
+
     checkForSchemaOptions(array_keys($options));
     checkForSchemaClasses($moduleInfo, $modelName, $options);
-    
-    createRepositoryInterface($moduleInfo, $modelName);    
+
+    createRepositoryInterface($moduleInfo, $modelName);
     createRepository($moduleInfo, $modelName);
     createModelInterface($moduleInfo, $modelName);
     createCollectionClass($moduleInfo, $modelName);
     createResourceModelClass($moduleInfo, $modelName);
-    createModelClass($moduleInfo, $modelName);                    
+    createModelClass($moduleInfo, $modelName);
     createSchemaAndDataClasses($moduleInfo, $modelName, $options);
 }
 
@@ -7904,14 +7904,14 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 /**
 * For conversion of Zend Log Level into PSR Log Level
-* 
-* This command generates a list of Magento 1 log levels, 
+*
+* This command generates a list of Magento 1 log levels,
 * and their PSR log level equivalents.
 *
 * @command generate-psr-log-level
 */
 function pestle_cli($argv)
-{   
+{
     $map = \Pulsestorm\Cli\Code_Generation\getZendPsrLogLevelMap();
     foreach($map as $key=>$value)
     {
@@ -7937,52 +7937,52 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 function createTemplateFile($module_info, $area, $template)
 {
-    $path = $module_info->folder . '/view/' . 
+    $path = $module_info->folder . '/view/' .
                 $area . '/templates/' .  $template;
 
     \Pulsestorm\Pestle\Library\output("Creating $path");
-    \Pulsestorm\Pestle\Library\writeStringToFile($path, '<h1>This is my template, there are many like it, but this one is mine.</h1>');                
-    
+    \Pulsestorm\Pestle\Library\writeStringToFile($path, '<h1>This is my template, there are many like it, but this one is mine.</h1>');
+
 }
 
 function createHandleFile($module_info, $area, $template, $class, $handle, $layout)
 {
     $xml = simplexml_load_string(\Pulsestorm\Magento2\Cli\Xml_Template\getBlankXml('layout_handle'));
-    $name  = strToLower($module_info->name) . 
-        '_block_' . 
+    $name  = strToLower($module_info->name) .
+        '_block_' .
         strToLower(\Pulsestorm\Pestle\Library\getShortClassNameFromClass($class));
-    
+
     \Pulsestorm\Xml_Library\simpleXmlAddNodesXpath($xml,
-        'referenceContainer[@name=content]/block[' . 
+        'referenceContainer[@name=content]/block[' .
         '@template=' . $template . ',' .
         '@class='    . $class    . ',' .
         '@name='     . $name     . ']'
     );
-    
+
     $xml['layout'] = $layout;
     if($layout === '' || $area === 'adminhtml')
     {
         unset($xml['layout']);
     }
 
-    $path = $module_info->folder . '/view/' . 
+    $path = $module_info->folder . '/view/' .
                 $area . '/layout/' .  $handle . '.xml';
 
     \Pulsestorm\Pestle\Library\output("Creating: $path");
-    \Pulsestorm\Pestle\Library\writeStringToFile($path, $xml->asXml());                   
-    
+    \Pulsestorm\Pestle\Library\writeStringToFile($path, $xml->asXml());
+
 }
 
 function createBlockClass($module_info, $block_name, $area='frontname')
 {
-    $class_name = str_replace('_', '\\', $module_info->name) . 
+    $class_name = str_replace('_', '\\', $module_info->name) .
         '\Block\\';
     if($area === 'adminhtml')
     {
         $class_name .= 'Adminhtml\\';
-    }        
+    }
     $class_name .= ucwords($block_name);
-    
+
     \Pulsestorm\Pestle\Library\output("Creating: " . $class_name);
     $baseClass = '\Magento\Framework\View\Element\Template';
     if($area === 'adminhtml')
@@ -8013,16 +8013,16 @@ function pestle_cli($argv)
     $module_name    = $argv['module_name'];
     $area           = $argv['area'];
     $handle         = $argv['handle'];
-    $block_name     = $argv['block_name'];            
-    $template       = $argv['template'];            
+    $block_name     = $argv['block_name'];
+    $template       = $argv['template'];
     $layout         = $argv['layout'];
-    
+
     $module_info    = \Pulsestorm\Magento2\Cli\Library\getModuleInformation($module_name);
 
-    createTemplateFile($module_info, $area, $template);    
+    createTemplateFile($module_info, $area, $template);
     $class = createBlockClass($module_info, $block_name, $area);
     createHandleFile($module_info, $area, $template, $class, $handle, $layout);
-    
+
 }
 
 function exported_pestle_cli($argv)
@@ -8050,30 +8050,30 @@ function createPhpClass($module_dir, $namespace, $module_name, $command_name)
     {
         mkdir($module_dir . '/Command',0755,true);
     }
-    
+
     \Pulsestorm\Pestle\Library\writeStringToFile($module_dir . '/Command/'.$command_name.'.php', $class_file_string);
 }
 
 function createDiIfNeeded($module_dir)
 {
     $path_di_xml = $module_dir . '/etc/di.xml';
-    
+
     if(!file_exists($path_di_xml))
     {
         $xml_di = simplexml_load_string(\Pulsestorm\Magento2\Cli\Xml_Template\getBlankXml('di'));
         \Pulsestorm\Xml_Library\simpleXmlAddNodesXpath($xml_di, 'type[@name=Magento\Framework\Console\CommandList]');
-        \Pulsestorm\Pestle\Library\writeStringToFile($path_di_xml, \Pulsestorm\Xml_Library\formatXmlString($xml_di->asXml()));       
+        \Pulsestorm\Pestle\Library\writeStringToFile($path_di_xml, \Pulsestorm\Xml_Library\formatXmlString($xml_di->asXml()));
     }
     return $path_di_xml;
 }
 
 /**
 * Generates bin/magento command files
-* This command generates the necessary files and configuration 
+* This command generates the necessary files and configuration
 * for a new command for Magento 2's bin/magento command line program.
 *
 *   pestle.phar generate_command Pulsestorm_Generate Example
-* 
+*
 * Creates
 * app/code/Pulsestorm/Generate/Command/Example.php
 * app/code/Pulsestorm/Generate/etc/di.xml
@@ -8084,44 +8084,44 @@ function createDiIfNeeded($module_dir)
 */
 function pestle_cli($argv)
 {
-    $module_info        = \Pulsestorm\Magento2\Cli\Library\getModuleInformation($argv['module_name']);    
+    $module_info        = \Pulsestorm\Magento2\Cli\Library\getModuleInformation($argv['module_name']);
     $namespace          = $module_info->vendor;
     $module_name        = $module_info->name;
     $module_shortname   = $module_info->short_name;
-    $module_dir         = $module_info->folder;    
+    $module_dir         = $module_info->folder;
     $command_name       = $argv['command_name'];
-    // $command_name       = input("Command Name?", 'Testbed');    
-        
-    \Pulsestorm\Pestle\Library\output($module_dir);    
-            
+    // $command_name       = input("Command Name?", 'Testbed');
+
+    \Pulsestorm\Pestle\Library\output($module_dir);
+
     createPhpClass($module_dir, $namespace, $module_shortname, $command_name);
-    
+
     $path_di_xml = createDiIfNeeded($module_dir);
-    
+
     $xml_di = simplexml_load_file($path_di_xml);
-    
+
     //get commandlist node
     $nodes = $xml_di->xpath('/config/type[@name="Magento\Framework\Console\CommandList"]');
     $xml_type_commandlist = array_shift($nodes);
     if(!$xml_type_commandlist)
     {
         $xml_type_commandlist          = $xml_di->addChild('type');
-        $xml_type_commandlist['name']  = 'Magento\Framework\Console\CommandList';        
+        $xml_type_commandlist['name']  = 'Magento\Framework\Console\CommandList';
     }
-    
-    $argument = \Pulsestorm\Xml_Library\simpleXmlAddNodesXpath($xml_type_commandlist, 
+
+    $argument = \Pulsestorm\Xml_Library\simpleXmlAddNodesXpath($xml_type_commandlist,
         '/arguments/argument[@name=commands,@xsi:type=array]');
 
-    $full_class = $namespace.'\\'.$module_shortname.'\\Command\\' . $command_name;    
+    $full_class = $namespace.'\\'.$module_shortname.'\\Command\\' . $command_name;
     $item_name  = str_replace('\\', '_', strToLower($full_class));
     $item       = $argument->addChild('item', $full_class);
     $item->addAttribute('name', $item_name);
     $item->addAttribute('xsi:type', 'object', 'http://www.w3.org/2001/XMLSchema-instance');
-    
+
     $xml_di     = \Pulsestorm\Xml_Library\formatXmlString($xml_di->asXml());
-        
-    \Pulsestorm\Pestle\Library\writeStringToFile($path_di_xml, $xml_di);       
-    
+
+    \Pulsestorm\Pestle\Library\writeStringToFile($path_di_xml, $xml_di);
+
 }
 
 function exported_pestle_cli($argv)
@@ -8137,9 +8137,9 @@ use Exception;
 /**
 * Generates a help class for reading Magento's configuration
 *
-* This command will generate the necessary files and configuration 
+* This command will generate the necessary files and configuration
 * needed for reading Magento 2's configuration values.
-* 
+*
 * @command generate-config-helper
 * @todo needs to be implemented
 */
@@ -8172,7 +8172,7 @@ class Config
             return $config;
         }
         $parts = explode(\'/\',$path);
-        
+
         foreach($parts as $part)
         {
             if(!array_key_exists($part, $config))
@@ -8181,18 +8181,18 @@ class Config
             }
             $config = $config[$part];
         }
-        
+
         return $config;
     }
-    
+
     protected function getTopLevelName()
     {
         return self::CONFIG_TOP;
     }
-}    
-');  
+}
+');
 
-    \Pulsestorm\Pestle\Library\output($template);  
+    \Pulsestorm\Pestle\Library\output($template);
 }
 
 function exported_pestle_cli($argv)
@@ -8219,27 +8219,27 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 */
 function pestle_cli($argv)
 {
-    extract($argv);    
+    extract($argv);
     $rule_ids = explode(',', $rule_ids);
     $rule_ids = array_filter($rule_ids);
-    
+
     $path = \Pulsestorm\Magento2\Cli\Library\getBaseModuleDir($module_name) . '/etc/acl.xml';
     if(!file_exists($path))
     {
         $xml = simplexml_load_string(\Pulsestorm\Magento2\Cli\Xml_Template\getBlankXml('acl'));
         \Pulsestorm\Pestle\Library\writeStringToFile($path, $xml->asXml());
-    }    
+    }
     $xml = simplexml_load_file($path);
-    
+
     $xpath = 'acl/resources/resource[@id=Magento_Backend::admin]';
-    
+
     foreach($rule_ids as $id)
-    {        
+    {
         $id = trim($id);
         $xpath .= '/resource[@id='.$id.',@title=TITLE HERE FOR]';
     }
     \Pulsestorm\Xml_Library\simpleXmlAddNodesXpath($xml,$xpath);
-    
+
     \Pulsestorm\Pestle\Library\writeStringToFile($path, \Pulsestorm\Xml_Library\formatXmlString($xml->asXml()));
     \Pulsestorm\Pestle\Library\output("Created $path");
 }
@@ -8263,7 +8263,7 @@ function pestle_cli($argv)
     extract($argv);
     $url .= '/rest/default/schema';
     $contents = file_get_contents($url);
-    $object = json_decode($contents);    
+    $object = json_decode($contents);
     var_dump($object);
 }
 }
@@ -8274,7 +8274,7 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 /**
 * ALPHA: "Fixes" permissions for development boxes
-* running mod_php by setting things to 777. 
+* running mod_php by setting things to 777.
 * @command magento2:fix-permissions-modphp
 */
 function pestle_cli($argv)
@@ -8284,7 +8284,7 @@ function pestle_cli($argv)
         "find $base/pub/static -exec chmod 777 '{}' +",
 	    "find $base/var/ -exec chmod 777 '{}' +",
     ];
-    
+
     foreach($cmds as $cmd)
     {
         $results = `$cmd`;
@@ -8479,31 +8479,31 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 function pestle_cli($argv)
 {
     $type        = \Pulsestorm\Pestle\Library\input("Which type (model, helper, block)?", 'model');
-    $alias       = \Pulsestorm\Pestle\Library\input("Which alias?", 'pulsestorm_helloworld/observer_newsletter');    
+    $alias       = \Pulsestorm\Pestle\Library\input("Which alias?", 'pulsestorm_helloworld/observer_newsletter');
     $path_config = \Pulsestorm\Pestle\Library\input("Which config.xml?", 'app/code/community/Pulsestorm/Helloworld/etc/config.xml');
-    
+
     $config      = simplexml_load_file($path_config);
     $class       = \Pulsestorm\Magento2\Cli\Library\resolveAlias($alias, $config, $type);
     // output($class);
     $mage_1_path = \Pulsestorm\Magento2\Cli\Library\getMage1ClassPathFromConfigPathAndMage2ClassName($path_config, $class);
     $mage_2_path = str_replace(['/core','/community','/local'], '', $mage_1_path);
-    
-    
+
+
     \Pulsestorm\Pestle\Library\output('');
     \Pulsestorm\Pestle\Library\output("New Class Path");
     \Pulsestorm\Pestle\Library\output('-----------------------');
     \Pulsestorm\Pestle\Library\output($mage_2_path);
     \Pulsestorm\Pestle\Library\output('');
-    
+
     \Pulsestorm\Pestle\Library\output("New Class Content");
     \Pulsestorm\Pestle\Library\output('-----------------------');
     \Pulsestorm\Pestle\Library\output(\Pulsestorm\Magento2\Cli\Library\convertMageOneClassIntoNamespacedClass($mage_1_path));
     \Pulsestorm\Pestle\Library\output('');
-    
+
     \Pulsestorm\Pestle\Library\output("DI Lines");
     \Pulsestorm\Pestle\Library\output('-----------------------');
     \Pulsestorm\Pestle\Library\output(implode("\n", \Pulsestorm\Magento2\Cli\Library\getDiLinesFromMage2ClassName($class)));
-    \Pulsestorm\Pestle\Library\output('');    
+    \Pulsestorm\Pestle\Library\output('');
 }
 }
 namespace Pulsestorm\Magento2\Cli\Extract_Session{
@@ -8569,8 +8569,8 @@ function pestle_cli($argv)
 {
     $contents = file_get_contents($argv[0]);
     // echo $contents;
-    
-    $array    = Session::unserialize($contents);    
+
+    $array    = Session::unserialize($contents);
     var_dump($array);
     \Pulsestorm\Pestle\Library\output("Foo");
 }}
@@ -8600,7 +8600,7 @@ function pestle_cli($argv)
     {
         $tree = \Pulsestorm\Magento2\Cli\Library\getSimpleTreeFromSystemXmlFile($path);
     }
-    
+
     $xml = simplexml_load_string(
     '<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd"><default></default></config>');
     foreach($tree as $section=>$groups)
@@ -8634,7 +8634,7 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 function pestle_cli($argv)
 {
     $base = \Pulsestorm\Magento2\Cli\Library\askForModuleAndReturnFolder($argv) . '/view';
-    
+
     $view_areas = glob($base . '/*');
     foreach($view_areas as $area)
     {
@@ -8662,7 +8662,7 @@ function getPhpModuleFiles()
         $info = pathinfo($name);
         if($info['basename'] !== 'module.php') { continue; }
         $items[] = $name;
-    } 
+    }
     return $items;
 }
 
@@ -8700,7 +8700,7 @@ function reportOnNamespaceAndFilepath($namespace, $command, $file)
         \Pulsestorm\Pestle\Library\output($file);
         \Pulsestorm\Pestle\Library\output($namespace);
         \Pulsestorm\Pestle\Library\output($command);
-        \Pulsestorm\Pestle\Library\output('--------------------------------------------------'); 
+        \Pulsestorm\Pestle\Library\output('--------------------------------------------------');
     }
 }
 
@@ -8709,17 +8709,17 @@ function reportOnNamespaceAndCommandName($namespace, $command, $file)
     $parts = explode('\\', $namespace);
     $last_namespace = strToLower(array_pop($parts));
     $second_last_namespace = strToLower(array_pop($parts));
-    
-    if( ($last_namespace !== $command) && 
+
+    if( ($last_namespace !== $command) &&
         (($second_last_namespace . '_' . $last_namespace) !== $command) &&
         $command !== 'library')
-    {        
+    {
         \Pulsestorm\Pestle\Library\output('--------------------------------------------------');
         \Pulsestorm\Pestle\Library\output($file);
-        \Pulsestorm\Pestle\Library\output($namespace);        
+        \Pulsestorm\Pestle\Library\output($namespace);
         \Pulsestorm\Pestle\Library\output($last_namespace);
         \Pulsestorm\Pestle\Library\output($command);
-        \Pulsestorm\Pestle\Library\output('--------------------------------------------------');    
+        \Pulsestorm\Pestle\Library\output('--------------------------------------------------');
     }
 }
 
@@ -8727,7 +8727,7 @@ function extractPestleImports($namespace, $command, $file)
 {
     $contents = php_strip_whitespace(($file));
     preg_match_all('%pestle_import.*?\((.+?)\).*?;%',$contents, $matches);
-    $namespaces_in_file = array_map(function($item) use ($file){        
+    $namespaces_in_file = array_map(function($item) use ($file){
         $item = str_replace(["'",'"'], '', $item);
         if($item === '$files as $file')
         {
@@ -8735,12 +8735,12 @@ function extractPestleImports($namespace, $command, $file)
         }
         return $item;
     }, $matches[1]);
-    
+
     $namespaces_in_file = array_filter($namespaces_in_file, function($item){
 //         return !in_array($item, ['(.+?', '$files as $file','$all_pestle_imports, extractPestleImports($namespace, $command, $file',
 //             '$namespace, $command, $file]'
-            return 
-                (strpos($item, 'pulsestorm') === 0) || 
+            return
+                (strpos($item, 'pulsestorm') === 0) ||
                 (strpos($item, 'Pulsestorm') === 0);
     });
     return $namespaces_in_file;
@@ -8748,14 +8748,14 @@ function extractPestleImports($namespace, $command, $file)
 }
 
 /**
-* ALPHA: Tests the "namespace integrity?  Not sure what this is anymore. 
+* ALPHA: Tests the "namespace integrity?  Not sure what this is anymore.
 *
 * @command php:test-namespace-integrity
 */
 function pestle_cli($argv)
 {
-    $files              = getPhpModuleFiles(); 
-    $all_pestle_imports = [];  
+    $files              = getPhpModuleFiles();
+    $all_pestle_imports = [];
     foreach($files as $file)
     {
         require_once $file;
@@ -8763,7 +8763,7 @@ function pestle_cli($argv)
         $command    = parseCommandFromFile($file);
         reportOnNamespaceAndCommandName($namespace, $command, $file);
         reportOnNamespaceAndFilepath($namespace, $command, $file);
-        $all_pestle_imports = array_merge($all_pestle_imports, 
+        $all_pestle_imports = array_merge($all_pestle_imports,
             extractPestleImports($namespace, $command, $file));
     }
     $all_pestle_imports = array_unique($all_pestle_imports);
@@ -8774,7 +8774,7 @@ function pestle_cli($argv)
         {
             \Pulsestorm\Pestle\Library\output("No such function $import, used in pestle_import somewhere");
         }
-        
+
     }
 
     \Pulsestorm\Pestle\Library\output("Test Complete");
@@ -8798,8 +8798,8 @@ function getAllControllerFiles($base)
     });
     $controllers = array_map(function($item){
         return \Pulsestorm\Phpdotnet\glob_recursive($item . '/Controller/*.php');
-    }, $files);    
-    
+    }, $files);
+
     return $controllers;
 }
 
@@ -8817,7 +8817,7 @@ function getControllersWithExecuteMethod($controllers)
             }
         }
     }
-    
+
     return $return;
 
 }
@@ -8831,7 +8831,7 @@ function getExecuteMethods($controllers)
         \Pulsestorm\Pestle\Library\output('--------------------------------------------------');
         \Pulsestorm\Pestle\Library\output($execute);
         \Pulsestorm\Pestle\Library\output('');
-        
+
     }
 }
 
@@ -8887,11 +8887,11 @@ function pestle_cli($argv)
         $new_tab->addAttribute('translate',(string)$tab['translate']);
         $new_tab->addAttribute('sortOrder',$sort);
         $sort+=10;
-        
+
         $new_tab->addChild('label', (string) $tab->label);
         // output($tab->getName());
     }
-    
+
     foreach($xml->sections->children() as $section)
     {
         $new_section = $xml_new->system->addChild('section');
@@ -8903,13 +8903,13 @@ function pestle_cli($argv)
         $new_section->addAttribute('showInDefault',(string)$section->show_in_default);
         $new_section->addAttribute('showInWebsite',(string)$section->show_in_website);
         $new_section->addAttribute('showInStore',(string)$section->show_in_store);
-        
+
         $new_section->addChild('label', (string)$section->label);
         $new_section->addChild('tab', (string)$section->tab);
         $new_section->addChild('resource', 'XXXX');
-        
+
         //id="advanced" translate="label" type="text" sortOrder="910" showInDefault="1" showInWebsite="1" showInStore="1"
-        
+
         // output($section->getName());
         foreach($section->groups->children() as $group)
         {
@@ -8925,11 +8925,11 @@ function pestle_cli($argv)
 
             $new_group->addChild('label', (string)$group->label);
             $new_group->addChild('frontend_model', 'XXXX');
-                    
+
             // output($group->getName());
             foreach($group->fields->children() as $field)
             {
-                //id="email" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1"            
+                //id="email" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1"
                 $new_field = $new_group->addChild('field');
                 $new_field->addAttribute('id',$field->getName());
                 $new_field->addAttribute('translate',(string)$field['translate']);
@@ -8941,17 +8941,17 @@ function pestle_cli($argv)
                 $new_field->addAttribute('showInStore',(string)$field->show_in_store);
                 foreach($field->children() as $field_child)
                 {
-                    if(in_array($field_child->getName(), ['id','translate','type','sort_order','show_in_default','show_in_website','show_in_store','frontend_type'])) 
-                    { 
-                        continue; 
+                    if(in_array($field_child->getName(), ['id','translate','type','sort_order','show_in_default','show_in_website','show_in_store','frontend_type']))
+                    {
+                        continue;
                     }
                     $new_field->addChild($field_child->getName(), (string) $field_child);
-                }                            
+                }
                 // output($field->getName());
             }
         }
     }
-    
+
     echo $xml_new->asXml(),"\n";
     \Pulsestorm\Pestle\Library\output("Done");
 }
@@ -8980,10 +8980,10 @@ function runCommand($cmd)
 */
 function pestle_cli($argv)
 {
-    
+
 
     $path = $argv['path'];
-    
+
     $olds = `find $path/ -name '*.php.old'`;
     $olds = explode("\n", $olds);
     $olds = array_filter($olds);
@@ -8998,22 +8998,22 @@ function pestle_cli($argv)
     // $path = 'app/code/LCG/Ambassador';
     $oldFiles       = `find $path/ -name '*.php'`;
     $convertedFiles = `find $path/ -name '*.php.converted'`;
-    
-    
 
-    $oldFiles = explode("\n", $oldFiles);    
+
+
+    $oldFiles = explode("\n", $oldFiles);
     $oldFiles = array_filter($oldFiles);
     foreach($oldFiles as $file)
-    {    
+    {
         $cmd = sprintf('mv %s %s', $file, $file . '.old');
         runCommand($cmd);
     }
-    
+
     $convertedFiles = explode("\n", $convertedFiles);
     $convertedFiles = array_filter($convertedFiles);
     foreach($convertedFiles as $file)
     {
-        $newPhpFile = preg_replace('%.php.converted$%', '.php', $file); 
+        $newPhpFile = preg_replace('%.php.converted$%', '.php', $file);
         $cmd = sprintf('mv %s %s', $file, $newPhpFile);
         runCommand($cmd);
     }
@@ -9040,19 +9040,19 @@ function validateXml($xml, $argv)
     {
         \Pulsestorm\Pestle\Library\exitWithErrorMessage('ERROR: This does not look like a <listing/> file.');
     }
-    
+
     $columns = getColumnsNodes($xml);
     if(count($columns) !== 1)
     {
         \Pulsestorm\Pestle\Library\exitWithErrorMessage('ERROR: File must have exactly one <columns/> node.');
     }
-    
+
     $name = $argv['column_name'];
     $nodes = $xml->xpath('//*[self::column or self::actionsColumn or self::selectionsColumn]');
     $column = array_filter($nodes, function($item) use ($name){
         return (string) $item['name'] === $name;
     });
-    
+
     if(count($column) > 0)
     {
         \Pulsestorm\Pestle\Library\exitWithErrorMessage("We already have a {$name} column.");
@@ -9064,11 +9064,11 @@ function getParentNode($node, $times=1)
     for($i=0;$i<$times;$i++)
     {
         $results = $node->xpath('parent::*');
-        $parent  = array_shift($results);    
+        $parent  = array_shift($results);
         if(!$parent){ break; } //reached top
         $node    = $parent;
     }
-    
+
     return $parent;
 }
 
@@ -9080,7 +9080,7 @@ function getSortOrder($xml)
     {
         return 10; //default
     }
-    
+
     //make sure sort order nodes are for our columns node and not something else
     $numbers = array_map(function($node){
         $parent = getParentNode($node,4);
@@ -9091,19 +9091,19 @@ function getSortOrder($xml)
         return (int)$node;
     }, $sortOrderNodes);
     $numbers = array_filter($numbers);
-    
+
     //If no sortOrder nodes, start with 10
     if(count($numbers) === 0)
     {
         return 10;
     }
-    
+
     //if only one sort order node, take 1 off the max
     if(count($numbers) === 1)
     {
         return max($numbers) - 1;
     }
-    
+
     //Find number between highest two numbers to slide our column in
     //right before the last one
     sort($numbers);
@@ -9117,7 +9117,7 @@ function getSortOrder($xml)
     {
         return max($numbers) - 1;
     }
-    
+
     $index = (int) $count / 2;
     return $numbers[$index];
 }
@@ -9134,18 +9134,18 @@ function pestle_cli($argv)
 {
     $xml = simplexml_load_file($argv['listing_file']);
     validateXml($xml, $argv);
-    
+
     $columns     = getColumnsNodes($xml);
     $columnsNode = array_shift($columns);
-    
+
     $column      = $columnsNode->addChild('column');
     $column->addAttribute('name', $argv['column_name']);
-    
+
     $argument           = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('argument',$column, 'data', 'array');
-    $itemNamedConfig    = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $argument, 'config', 'array');           
-    $label              = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $itemNamedConfig, 'label','string', $argv['column_label']);    
-    $sortOrder          = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $itemNamedConfig, 'sortOrder','number', getSortOrder($xml));    
-    
+    $itemNamedConfig    = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $argument, 'config', 'array');
+    $label              = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $itemNamedConfig, 'label','string', $argv['column_label']);
+    $sortOrder          = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $itemNamedConfig, 'sortOrder','number', getSortOrder($xml));
+
     \Pulsestorm\Pestle\Library\output("Adding to {$argv['listing_file']}");
     \Pulsestorm\Pestle\Library\writeStringToFile($argv['listing_file'], \Pulsestorm\Xml_Library\formatXmlString($xml->asXml()));
 }
@@ -9164,7 +9164,7 @@ function validateXml($xml, $argv)
     {
         \Pulsestorm\Pestle\Library\exitWithErrorMessage('ERROR: This does not look like a <form/> file.');
     }
-    
+
     $fieldsets = $xml->xpath('/form/fieldset[@name="'.$argv['fieldset'].'"]');
     if(count($fieldsets) !== 0)
     {
@@ -9173,10 +9173,10 @@ function validateXml($xml, $argv)
 
 }
 /**
-* Add a Fieldset to a Form 
+* Add a Fieldset to a Form
 *
 * @command magento2:generate:ui:add-form-fieldset
-* @argument path_xml Path to Form XML File? 
+* @argument path_xml Path to Form XML File?
 * @argument fieldset Fieldset Name? [newfieldset]
 * @argument label Label? [NewFieldset]
 */
@@ -9190,9 +9190,9 @@ function pestle_cli($argv)
     $fieldset->addAttribute('name', $argv['fieldset']);
     $argument     = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('argument', $fieldset, 'data', 'array');
     $itemConfig   = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $argument, 'config', 'array');
-    $itemLabel    = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $itemConfig, 'label', 'string', $argv['label']);        
+    $itemLabel    = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $itemConfig, 'label', 'string', $argv['label']);
     $itemCollaps  = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $itemConfig, 'collapsible', 'boolean', 'true');
-    
+
     //output(formatXmlString($xml->asXml()));
     \Pulsestorm\Pestle\Library\writeStringToFile(
         $argv['path_xml'],
@@ -9214,7 +9214,7 @@ function validateXml($xml, $argv)
     {
         \Pulsestorm\Pestle\Library\exitWithErrorMessage('ERROR: This does not look like a <form/> file.');
     }
-    
+
     $fieldsets = $xml->xpath('/form/fieldset[@name="'.$argv['fieldset'].'"]');
     if(count($fieldsets) !== 1)
     {
@@ -9239,7 +9239,7 @@ function getNextSortOrderFromXml($xml)
         }
         return $item;
     }, 0);
-    
+
     return $max + 10;
 }
 
@@ -9248,38 +9248,38 @@ function getNextSortOrderFromXml($xml)
 * Adds a Form Field
 *
 * @command magento2:generate:ui:add-form-field
-* @argument path_xml Path to Form XML File? 
+* @argument path_xml Path to Form XML File?
 * @argument field Field Name? [title]
 * @argument label Label? [Title]
 * @argument fieldset Fieldset Name? [general]
 * @option is-required Is field required?
 */
 function pestle_cli($argv, $options)
-{    
+{
     $xml = simplexml_load_file($argv['path_xml']);
     validateXml($xml, $argv);
-    $fieldsets  = $xml->xpath('/form/fieldset[@name="'.$argv['fieldset'].'"]');        
+    $fieldsets  = $xml->xpath('/form/fieldset[@name="'.$argv['fieldset'].'"]');
     $fieldset   = array_shift($fieldsets);
-    
+
     $dataType = 'text';
     $formElement = 'input';
     $sortOrder   = '25';
-    
+
     $field      = $fieldset->addChild('field');
     $field->addAttribute('name', $argv['field']);
     // addSpecificChild('field', $fieldset,);
     $argument           = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('argument', $field, 'data', 'array');
     $itemConfig         = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $argument, 'config', 'array');
     $itemDataType       = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $itemConfig, 'dataType', 'string', $dataType);
-    $itemLabel          = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $itemConfig, 'label', 'string', $argv['label']);        
+    $itemLabel          = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $itemConfig, 'label', 'string', $argv['label']);
     $itemFormElement    = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $itemConfig, 'formElement', 'string', $formElement);
     $itemSortOrder      = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $itemConfig, 'sortOrder', 'string', getNextSortOrderFromXml($fieldset));
-    $itemDataScope      = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $itemConfig, 'dataScope', 'string', $argv['field']);    
-        
-    $itemValidation     = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $itemConfig, 'validation', 'array');    
+    $itemDataScope      = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $itemConfig, 'dataScope', 'string', $argv['field']);
+
+    $itemValidation     = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $itemConfig, 'validation', 'array');
     $required           = is_null($options['is-required']) ? 'false' : 'true';
-    $itemRequiredEntry  = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $itemValidation, 'required-entry', 'boolean', $required);    
-        
+    $itemRequiredEntry  = \Pulsestorm\Magento2\Cli\Library\addSpecificChild('item', $itemValidation, 'required-entry', 'boolean', $required);
+
     \Pulsestorm\Pestle\Library\writeStringToFile(
         $argv['path_xml'],
         \Pulsestorm\Xml_Library\formatXmlString($xml->asXml())
@@ -9860,27 +9860,27 @@ function getMitLicenseTextAsComment()
     return '/**
  * The MIT License (MIT)
  * Copyright (c) 2015 - '.date('Y').' Pulse Storm LLC, Alan Storm
- * 
- * Permission is hereby granted, free of charge, to any person obtaining 
- * a copy of this software and associated documentation files (the 
- * "Software"), to deal in the Software without restriction, including 
- * without limitation the rights to use, copy, modify, merge, publish, 
- * distribute, sublicense, and/or sell copies of the Software, and to 
- * permit persons to whom the Software is furnished to do so, subject to 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
  * the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included 
+ *
+ * The above copyright notice and this permission notice shall be included
  * in all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT 
- * OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT
+ * OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
  * THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */';
-    
+
 }
 
 function prefacePhpStringWithMitLicense($string)
@@ -9898,7 +9898,7 @@ function prefacePhpStringWithMitLicense($string)
             $found = true;
         }
     }
-    
+
     return implode("\n", $new);
 }
 
@@ -9930,15 +9930,15 @@ function moduleHasOrNeedsOurUpgradeData($moduleInfo)
 {
     $path = getUpgradeDataPathFromModuleInfo($moduleInfo);
     if(!file_exists($path))
-    {        
+    {
         return true;
-    }    
-    
+    }
+
     if(classFileIsOurDataUpgrade($path))
     {
         return true;
     }
-    
+
     return;
 }
 
@@ -9948,13 +9948,13 @@ function moduleHasOrNeedsOurUpgradeSchema($moduleInfo)
     if(!file_exists($path))
     {
         return true;
-    }    
-    
+    }
+
     if(classFileIsOurSchemaUpgrade($path))
     {
         return true;
     }
-    
+
     return;
 }
 
@@ -9997,7 +9997,7 @@ function checkForExistingUpgradeScript($moduleInfo, $upgradeVersion)
         {
             \Pulsestorm\Pestle\Library\exitWithErrorMessage("A $upgradeVersion.php $type script already exists");
         }
-    }  
+    }
 }
 
 function getModuleXmlPathFromModuleInfo($moduleInfo)
@@ -10020,24 +10020,24 @@ function checkModuleXmlForVersion($moduleInfo, $upgradeVersion)
 function checkUpgradeVersionValidity($moduleInfo, $upgradeVersion)
 {
     $parts = explode('.',$upgradeVersion);
-    $parts = array_filter($parts, 'is_numeric');    
+    $parts = array_filter($parts, 'is_numeric');
     if(count($parts) !== 3)
     {
         \Pulsestorm\Pestle\Library\exitWithErrorMessage("Version does not appear to be in numeric X.X.X format.");
-    }        
-    checkForExistingUpgradeScript($moduleInfo, $upgradeVersion);      
-    checkModuleXmlForVersion($moduleInfo, $upgradeVersion);      
+    }
+    checkForExistingUpgradeScript($moduleInfo, $upgradeVersion);
+    checkModuleXmlForVersion($moduleInfo, $upgradeVersion);
 }
 
 function getSchemaClassNameFromModuleInfo($moduleInfo)
 {
-    return $moduleInfo->vendor . '\\' . $moduleInfo->short_name . 
+    return $moduleInfo->vendor . '\\' . $moduleInfo->short_name .
         '\Setup\UpgradeSchema';
 }
 
 function getDataClassNameFromModuleInfo($moduleInfo)
 {
-    return $moduleInfo->vendor . '\\' . $moduleInfo->short_name . 
+    return $moduleInfo->vendor . '\\' . $moduleInfo->short_name .
         '\Setup\UpgradeData';
 }
 
@@ -10045,8 +10045,8 @@ function getDataUseStatements()
 {
     return 'use Magento\Framework\Setup\UpgradeDataInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
-use Magento\Framework\Setup\ModuleDataSetupInterface;    
-';    
+use Magento\Framework\Setup\ModuleDataSetupInterface;
+';
 }
 
 function getDataClassBody($moduleInfo, $useScripts)
@@ -10056,13 +10056,13 @@ function getDataClassBody($moduleInfo, $useScripts)
     {
         $constructor = getConstructorForUpgradeClassesFromModuleInfo($moduleInfo);
     }
-    
+
     $scriptHelperCall    = '';
     if($useScripts)
     {
         $scriptHelperCall = '$this->scriptHelper->run($setup, $context, \'data\');';
     }
-        
+
     $setupScriptClassName = getSetupScriptClassNameFromModuleInfo($moduleInfo);
     return '
     ' . $constructor . '
@@ -10070,15 +10070,15 @@ function getDataClassBody($moduleInfo, $useScripts)
      * {@inheritdoc}
      */
     public function upgrade(
-        ModuleDataSetupInterface $setup, 
+        ModuleDataSetupInterface $setup,
         ModuleContextInterface $context
     )
     {
-        $setup->startSetup();        
+        $setup->startSetup();
         ' . $scriptHelperCall . '
         $setup->endSetup();
-    }        
-';    
+    }
+';
 }
 
 function getSchemaUseStatements()
@@ -10095,48 +10095,48 @@ function getSetupScriptClassNameFromModuleInfo($moduleInfo)
 
 function getConstructorForUpgradeClassesFromModuleInfo($moduleInfo)
 {
-    $setupScriptClassName = getSetupScriptClassNameFromModuleInfo($moduleInfo);    
+    $setupScriptClassName = getSetupScriptClassNameFromModuleInfo($moduleInfo);
     $constructor = '
-    protected $scriptHelper;    
+    protected $scriptHelper;
     public function __construct(
         '.$setupScriptClassName.' $scriptHelper
     )
     {
         $this->scriptHelper = $scriptHelper;
-    }        
-';        
+    }
+';
     return $constructor;
 }
 function getSchemaClassBody($moduleInfo, $useScripts)
 {
-    
+
     $constructor          = '';
     if($useScripts)
     {
         $constructor = getConstructorForUpgradeClassesFromModuleInfo($moduleInfo);
     }
-    
+
     $scriptHelperCall    = '';
     if($useScripts)
     {
         $scriptHelperCall = '$this->scriptHelper->run($setup, $context, \'schema\');';
     }
-        
+
     return '
     ' . $constructor . '
     /**
      * {@inheritdoc}
      */
     public function upgrade(
-        SchemaSetupInterface $setup, 
+        SchemaSetupInterface $setup,
         ModuleContextInterface $context
     )
     {
-        $setup->startSetup();        
+        $setup->startSetup();
         ' . $scriptHelperCall . '
         $setup->endSetup();
-    }      
-';    
+    }
+';
 }
 
 function generateUpgradeSchemaClass($moduleInfo, $useScripts)
@@ -10148,9 +10148,9 @@ function generateUpgradeSchemaClass($moduleInfo, $useScripts)
     $contents = str_replace('<$use$>', getSchemaUseStatements(), $contents);
     $contents = str_replace('<$body$>', getSchemaClassBody($moduleInfo, $useScripts), $contents);
     $contents = prefacePhpStringWithMitLicense($contents);
-        
+
     \Pulsestorm\Pestle\Library\output("Creating $className");
-    \Pulsestorm\Magento2\Cli\Library\createClassFile($className, $contents);        
+    \Pulsestorm\Magento2\Cli\Library\createClassFile($className, $contents);
 }
 
 function generateUpgradeDataClass($moduleInfo, $useScripts)
@@ -10161,9 +10161,9 @@ function generateUpgradeDataClass($moduleInfo, $useScripts)
     $contents = \Pulsestorm\Cli\Code_Generation\createClassTemplateWithUse($className, false, 'UpgradeDataInterface');
     $contents = str_replace('<$use$>', getDataUseStatements(), $contents);
     $contents = str_replace('<$body$>', getDataClassBody($moduleInfo, $useScripts), $contents);
-    $contents = prefacePhpStringWithMitLicense($contents);    
-    \Pulsestorm\Pestle\Library\output("Creating $className");    
-    \Pulsestorm\Magento2\Cli\Library\createClassFile($className, $contents); 
+    $contents = prefacePhpStringWithMitLicense($contents);
+    \Pulsestorm\Pestle\Library\output("Creating $className");
+    \Pulsestorm\Magento2\Cli\Library\createClassFile($className, $contents);
 }
 
 function getScriptsClassBody($moduleInfo)
@@ -10183,11 +10183,11 @@ function getScriptsClassBody($moduleInfo)
         foreach($this->getSetupScripts($type) as $version=>$script)
         {
             $this->runUpgradeScriptIfNeeded($version, $script, $context, $setup);
-        }            
+        }
     }
-    
+
     protected function runUpgradeScriptIfNeeded($version, $script, $context, $setup)
-    {        
+    {
         if(!version_compare($context->getVersion(), $version, \'<\'))
         {
             return;
@@ -10197,9 +10197,9 @@ function getScriptsClassBody($moduleInfo)
         {
             return;
         }
-        include $script;                
-    }  
-        
+        include $script;
+    }
+
     protected function getSetupScripts($type)
     {
         $files = glob($this->getBaseModuleDirectory() . \'/upgrade_scripts/\' .
@@ -10210,32 +10210,32 @@ function getScriptsClassBody($moduleInfo)
             $b = pathinfo($b)[\'filename\'];
             return version_compare($a, $b);
         });
-                    
+
         $withVersionKeys = [];
         foreach($files as $file)
         {
             $withVersionKeys[pathinfo($file)[\'filename\']] = $file;
         }
-        
+
         return $withVersionKeys;
     }
-    
+
     protected function getModuleNameFromStaticClassName()
     {
         $parts = explode("\\\\", static::class);
         return $parts[0] . \'_\' . $parts[1];
     }
-    
+
     protected function getBaseModuleDirectory()
     {
-        return $this->dirReader->getModuleDir(\'\',$this->getModuleNameFromStaticClassName());        
+        return $this->dirReader->getModuleDir(\'\',$this->getModuleNameFromStaticClassName());
     }
 
     /**
      * We don\'t trust any of the standard class mechanisms to stay stable version
      * to version, and that seems important in an upgrade class that shouldn\'t
      * ever change.
-     */    
+     */
     protected function getCurrentModuleVersionFromDisk()
     {
         if(!$this->currentModuleVersionFromDisk)
@@ -10245,22 +10245,22 @@ function getScriptsClassBody($moduleInfo)
         }
         return $this->currentModuleVersionFromDisk;
     }
-    
+
     protected function loadXmlFile($path)
     {
         return simplexml_load_file($path);
-    }      
-';    
+    }
+';
 }
 
 function generateScriptHelperClass($moduleInfo)
 {
-    $setupScriptClassName = getSetupScriptClassNameFromModuleInfo($moduleInfo);    
+    $setupScriptClassName = getSetupScriptClassNameFromModuleInfo($moduleInfo);
     $contents = \Pulsestorm\Cli\Code_Generation\createClassTemplateWithUse($setupScriptClassName, false);
     $contents = str_replace('<$use$>', '', $contents);
     $contents = str_replace('<$body$>', getScriptsClassBody($moduleInfo), $contents);
-    $contents = prefacePhpStringWithMitLicense($contents);    
-    \Pulsestorm\Magento2\Cli\Library\createClassFile($setupScriptClassName, $contents);         
+    $contents = prefacePhpStringWithMitLicense($contents);
+    \Pulsestorm\Magento2\Cli\Library\createClassFile($setupScriptClassName, $contents);
 }
 
 function getSchemaUpgradeScriptBody()
@@ -10277,7 +10277,7 @@ function getSchemaUpgradeScriptBody()
  * @var $setup \Magento\Framework\Setup\ModuleContextInterface
  */
  $context;
- 
+
 //create a table
 //         $table = $setup->getConnection()
 //             ->newTable($setup->getTable(Gallery::GALLERY_VALUE_TO_ENTITY_TABLE))
@@ -10293,7 +10293,7 @@ function getSchemaUpgradeScriptBody()
 //update a table
 // $installer = $setup;
 // $tableAdmins = $setup->getTable(\'admin_user\');
-// 
+//
 // $setup->getConnection()->addColumn(
 //     $tableAdmins,
 //     \'failures_num\',
@@ -10322,22 +10322,22 @@ function getDataUpgradeScriptBody()
  */
  $context;
 
-//insert data  
-//             $connection = $setup->getConnection();      
+//insert data
+//             $connection = $setup->getConnection();
 //             $select = $connection->select()
 //                 ->from(
 //                     $this->relationProcessor->getTable(\'catalog_product_link\'),
 //                     [\'product_id\', \'linked_product_id\']
 //                 )
 //                 ->where(\'link_type_id = ?\', Link::LINK_TYPE_GROUPED);
-// 
+//
 //             $connection->query(
 //                 $connection->insertFromSelect(
 //                     $select, $this->relationProcessor->getMainTable(),
 //                     [\'parent_id\', \'child_id\'],
 //                     AdapterInterface::INSERT_IGNORE
 //                 )
-//             ); 
+//             );
 
 //update data
 // $connection = $setup->getConnection(\'sales\');
@@ -10351,7 +10351,7 @@ function getDataUpgradeScriptBody()
 //         [\'additional_information\' => serialize($additionalInfo)],
 //         [\'entity_id = ?\' => $item[\'entity_id\']]
 //     );
-// }      
+// }
  ';
 }
 
@@ -10360,22 +10360,22 @@ function incrementModuleXml($moduleInfo, $upgradeVersion)
     \Pulsestorm\Pestle\Library\output("Incrementing module.xml to {$upgradeVersion}");
     $path = getModuleXmlPathFromModuleInfo($moduleInfo);
     $xml = simplexml_load_file($path);
-    $xml->module['setup_version'] = $upgradeVersion;    
+    $xml->module['setup_version'] = $upgradeVersion;
     \Pulsestorm\Pestle\Library\writeStringToFile($path, \Pulsestorm\Xml_Library\formatXmlString($xml->asXml()));
 }
 
 function generateUpgradeScripts($moduleInfo, $upgradeVersion)
-{    
+{
     $setupPath = getSetupScriptPathFromModuleInfo($moduleInfo, 'schema');
-    \Pulsestorm\Pestle\Library\output("Creating {$upgradeVersion} Upgrade Scripts in {$setupPath}");    
-    \Pulsestorm\Pestle\Library\writeStringToFile($setupPath . '/' . $upgradeVersion . '.php', 
-        getSchemaUpgradeScriptBody());    
-            
-    $setupPath = getSetupScriptPathFromModuleInfo($moduleInfo, 'data');        
-    \Pulsestorm\Pestle\Library\output("Creating {$upgradeVersion} Upgrade Scripts in {$setupPath}");    
-    \Pulsestorm\Pestle\Library\writeStringToFile($setupPath . '/' . $upgradeVersion . '.php', 
+    \Pulsestorm\Pestle\Library\output("Creating {$upgradeVersion} Upgrade Scripts in {$setupPath}");
+    \Pulsestorm\Pestle\Library\writeStringToFile($setupPath . '/' . $upgradeVersion . '.php',
+        getSchemaUpgradeScriptBody());
+
+    $setupPath = getSetupScriptPathFromModuleInfo($moduleInfo, 'data');
+    \Pulsestorm\Pestle\Library\output("Creating {$upgradeVersion} Upgrade Scripts in {$setupPath}");
+    \Pulsestorm\Pestle\Library\writeStringToFile($setupPath . '/' . $upgradeVersion . '.php',
         getDataUpgradeScriptBody());
-}        
+}
 
 /**
 * BETA: Generates a migration-based UpgradeSchema and UpgradeData classes
@@ -10392,21 +10392,21 @@ function pestle_cli($argv, $options)
     });
     $useScripts = isset($options['use-simple-upgrade']) ? false : true;
     $moduleInfo = \Pulsestorm\Magento2\Cli\Library\getModuleInformation($argv['module_name']);
-    
+
     checkForSchemaInstall($moduleInfo);
     checkForUpgradeSchema($moduleInfo);
     checkForUpgradeData($moduleInfo);
     checkUpgradeVersionValidity($moduleInfo, $argv['upgrade_version']);
-    
+
     generateUpgradeSchemaClass($moduleInfo, $useScripts);
     generateUpgradeDataClass($moduleInfo, $useScripts);
     incrementModuleXml($moduleInfo, $argv['upgrade_version']);
-    
+
     if($useScripts)
     {
         generateScriptHelperClass($moduleInfo);
         generateUpgradeScripts($moduleInfo, $argv['upgrade_version']);
-    }    
+    }
 }
 
 function exportedSchemaUpgrade($argv, $options)
@@ -10437,13 +10437,13 @@ function getPathFromClassIncludingVendor($class)
     }
     $psr4 = include (\Pulsestorm\Magento2\Cli\Library\getBaseMagentoDir() . '/vendor/composer/autoload_psr4.php');
 
-    $parts  = explode('\\', $class);        
+    $parts  = explode('\\', $class);
     $prefix = ($parts[0] . '\\' . $parts[1] . '\\');
-    $prefix = array_shift($parts) . '\\' . array_shift($parts) . '\\';        
-    
+    $prefix = array_shift($parts) . '\\' . array_shift($parts) . '\\';
+
     $paths = [];
     foreach($psr4 as $key=>$value)
-    {    
+    {
         if(strpos($key, $prefix) !== false)
         {
             $paths[] = $value;
@@ -10459,8 +10459,8 @@ function getPathFromClassIncludingVendor($class)
             {
                 return $path;
             }
-        }        
-    }    
+        }
+    }
 
     // var_dump($class);
     // exit;
@@ -10469,7 +10469,7 @@ function getPathFromClassIncludingVendor($class)
 
 function getParentClassFromClassContents($contents)
 {
-    $information = \Pulsestorm\Cli\Token_Parse\extractClassInformationFromClassContents($contents);    
+    $information = \Pulsestorm\Cli\Token_Parse\extractClassInformationFromClassContents($contents);
     return $information['full-extends'];
 }
 
@@ -10487,12 +10487,12 @@ function getConstructorFromParentClass($class)
     }
 
     $function = preg_replace('%{.*}%s','{<%body%>}', $function);
-    
+
     $variables = \Pulsestorm\Cli\Token_Parse\extractVariablesFromConstructor($function);
     $parentCall = '    parent::__construct(' . implode(',', $variables) . ');';
 
-    $function = str_replace('{<%body%>}',"{\n    $parentCall\n    }", $function);        
-        
+    $function = str_replace('{<%body%>}',"{\n    $parentCall\n    }", $function);
+
     return '    ' . $function;
 }
 
@@ -10504,13 +10504,13 @@ function getConstructorFromParentClass($class)
 * @argument class_parent Parent Class? [Magento\Framework\Model\AbstractModel]
 */
 function pestle_cli($argv)
-{       
+{
     $class = \Pulsestorm\Cli\Code_Generation\createClassTemplateWithUse($argv['class_child'], '\\' . $argv['class_parent']);
-    
+
     $class = str_replace('<$use$>', '', $class);
     $class = str_replace(
-        '<$body$>', 
-        "\n" . getConstructorFromParentClass($argv['class_parent']) . "\n", 
+        '<$body$>',
+        "\n" . getConstructorFromParentClass($argv['class_parent']) . "\n",
         $class);
 
     $path = \Pulsestorm\Magento2\Cli\Path_From_Class\getPathFromClass($argv['class_child']);
@@ -10519,7 +10519,7 @@ function pestle_cli($argv)
         \Pulsestorm\Pestle\Library\writeStringToFile($path, $class);
         return;
     }
-    \Pulsestorm\Pestle\Library\output("Class File Already Exists, but here's the constructor");        
+    \Pulsestorm\Pestle\Library\output("Class File Already Exists, but here's the constructor");
     \Pulsestorm\Pestle\Library\output($class);
 }
 }
@@ -10543,7 +10543,7 @@ function pestle_cli($argv)
 {
     $xml = simplexml_load_file($argv['path_xml']);
     $nodes = \Pulsestorm\Xml_Library\getByAttributeXmlBlockWithNodeNames(
-        'name', $xml, $argv['name'], [$argv['node_name']]);    
+        'name', $xml, $argv['name'], [$argv['node_name']]);
 
     if(count($nodes) === 0)
     {
@@ -10554,16 +10554,16 @@ function pestle_cli($argv)
     {
         \Pulsestorm\Pestle\Library\exitWithErrorMessage("Bailing: Found more than one node.");
     }
-            
-    $node = $nodes[0];            
-    
+
+    $node = $nodes[0];
+
     if(count($node->children()) > 0)
     {
         \Pulsestorm\Pestle\Library\exitWithErrorMessage("Bailing: Contains child nodes");
     }
 
     unset($node[0]); //http://stackoverflow.com/questions/262351/remove-a-child-with-a-specific-attribute-in-simplexml-for-php/16062633#16062633
-        
+
     \Pulsestorm\Pestle\Library\writeStringToFile(
         $argv['path_xml'],\Pulsestorm\Xml_Library\formatXmlString($xml->asXml())
     );
@@ -10626,13 +10626,13 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 function generateWebApiXml($moduleInfo, $uri, $repositoryClass, $resourceId)
 {
-    $path   = $moduleInfo->folder . '/etc/webapi.xml';    
+    $path   = $moduleInfo->folder . '/etc/webapi.xml';
     $xml    = simplexml_load_string(\Pulsestorm\Magento2\Cli\Xml_Template\getBlankXmlWebapi());
     if(file_exists($path))
     {
         $xml = simplexml_load_file($path);
     }
-    
+
     $nodes = $xml->xpath('//route[@url="'.$uri.'"]');
     if(count($nodes) > 0)
     {
@@ -10642,24 +10642,24 @@ function generateWebApiXml($moduleInfo, $uri, $repositoryClass, $resourceId)
     $route  = $xml->addChild('route');
     $route->addAttribute('url',$uri);
     $route->addAttribute('method','GET');
-    
+
     $service = $route->addChild('service');
     $service->addAttribute('class',$repositoryClass);
     $service->addAttribute('method','get');
-    
+
     $resource = $route->addChild('resources')->addChild('resource');
     $resource->addAttribute('ref', $resourceId);
-        
+
     \Pulsestorm\Pestle\Library\writeStringToFile($path, \Pulsestorm\Xml_Library\formatXmlString($xml->asXml()));
 }
 
 function generateRepositoryGetMethod()
 {
     $docBlock = '';
-    $methodBodyGet = 
+    $methodBodyGet =
 '        $object = $this->factory->create();
         $object->setId($id);
-        return $object;';    
+        return $object;';
     $methodGet = \Pulsestorm\Cli\Code_Generation\templateMethod('public', 'get', $docBlock);
     $methodGet  = str_replace('<$params$>', '$id', $methodGet);
     $methodGet  = str_replace('<$methodBody$>', $methodBodyGet, $methodGet);
@@ -10668,30 +10668,30 @@ function generateRepositoryGetMethod()
 
 function generateRepositoryConstructMethod($model)
 {
-    $docBlock = '';   
-    $methodBody = 
-'        $this->factory = $factory;';    
+    $docBlock = '';
+    $methodBody =
+'        $this->factory = $factory;';
     $method = \Pulsestorm\Cli\Code_Generation\templateMethod('public', '__construct', $docBlock);
     $method  = str_replace('<$params$>', '\\' . $model . 'Factory $factory', $method);
     $method  = str_replace('<$methodBody$>', $methodBody, $method);
-    
+
     $props = '
     /**
     * @var ' . $model . 'Factory
-    */        
+    */
     protected $factory;';
     return $props . "\n" . $method;
 }
 
-function generateRepositoryClassAndInterface($moduleInfo, $repositoryName, 
+function generateRepositoryClassAndInterface($moduleInfo, $repositoryName,
     $repositoryInterfaceName, $modelInterface, $modelName)
 {
     $contents = \Pulsestorm\Cli\Code_Generation\createClassTemplateWithUse($repositoryName, false, '\\' . $repositoryInterfaceName);
 
-    
+
     $methodGet = generateRepositoryGetMethod();
     $methodConstruct = generateRepositoryConstructMethod($modelName);
-    
+
     $classBody = implode('', [$methodConstruct, $methodGet]);
     $contents = str_replace('<$body$>', $classBody, $contents);
     $contents = str_replace('<$use$>', '', $contents);
@@ -10701,13 +10701,13 @@ function generateRepositoryClassAndInterface($moduleInfo, $repositoryName,
     /**
      * @param int $id
      * @return \\'.$modelInterface.'
-     */');      
+     */');
     $contents = \Pulsestorm\Cli\Code_Generation\templateInterface($repositoryInterfaceName,['get']);
     $functionGet = 'function get';
     $contents = str_replace($functionGet, $docBlock . "\n" . '    '.$functionGet, $contents);
     $contents = str_replace($functionGet . '(', $functionGet . '($id', $contents);
 
-    \Pulsestorm\Magento2\Cli\Library\createClassFile($repositoryInterfaceName,$contents);        
+    \Pulsestorm\Magento2\Cli\Library\createClassFile($repositoryInterfaceName,$contents);
 }
 
 function getMethodsFromProperties($properties)
@@ -10729,26 +10729,26 @@ function generateClassAndInterface($modelToSign, $interfaceName, $properties)
 {
 
     $methods = getMethodsFromProperties($properties);
-    
-    $contents = \Pulsestorm\Cli\Code_Generation\createClassTemplateWithUse($modelToSign, false, '\\' . $interfaceName);    
+
+    $contents = \Pulsestorm\Cli\Code_Generation\createClassTemplateWithUse($modelToSign, false, '\\' . $interfaceName);
     $classBody      = '';
     $classBodyProps = '';
     $interfaceBody  = '';
-    
+
     foreach($properties as $propName=>$type)
     {
         $camelPropName = snakeToCamel($propName);
         $classBodyProps .= '
     /**
      * @var '.$type.' $'.$propName.'
-     */                
+     */
     protected $' . $propName . ';';
-    
+
         $classBody .= '
     public function get'.$camelPropName.'()
     {
        return $this->'.$propName.';
-    }        
+    }
     public function set'.$camelPropName.'($'.$propName.')
     {
        $this->'.$propName.' = $'.$propName.';
@@ -10761,40 +10761,40 @@ function generateClassAndInterface($modelToSign, $interfaceName, $properties)
      * @return '.$type.'
      */
      function get'.$camelPropName.'();
-     
+
     /**
-     * @param '.$type.' $'.$propName.'   
-     * @return $this     
-     */   
+     * @param '.$type.' $'.$propName.'
+     * @return $this
+     */
      public function set'.$camelPropName.'($'.$propName.');
-';          
-     
+';
+
     }
 
     $classBody = $classBodyProps . "\n" . $classBody;
-    
+
     $contents = str_replace('<$body$>', $classBody, $contents);
     $contents = str_replace('<$use$>', '', $contents);
     \Pulsestorm\Magento2\Cli\Library\createClassFile($modelToSign, $contents);
-    
+
     // $contents = templateInterface($interfaceName,$methods);
     $contents = \Pulsestorm\Cli\Code_Generation\templateInterface($interfaceName,[]);
     $contents = str_replace('{', "{\n" . $interfaceBody, $contents);
     \Pulsestorm\Magento2\Cli\Library\createClassFile($interfaceName, $contents);
 }
 
-function generateDiConfigurations($moduleName, $repositoryInterfaceName, 
+function generateDiConfigurations($moduleName, $repositoryInterfaceName,
     $repositoryName, $interfaceName, $modelToSign)
 {
     \Pulsestorm\Magento2\Cli\Magento2\Generate\Preference\generateDiConfiguration([
         'module'=>$moduleName,
         'for'   =>$repositoryInterfaceName,
-        'type'  =>$repositoryName]);                
-          
+        'type'  =>$repositoryName]);
+
     \Pulsestorm\Magento2\Cli\Magento2\Generate\Preference\generateDiConfiguration([
         'module'=>$moduleName,
         'for'   =>$interfaceName,
-        'type'  =>$modelToSign]);                        
+        'type'  =>$modelToSign]);
 }
 
 /**
@@ -10809,49 +10809,49 @@ function pestle_cli($argv, $options)
     {
         \Pulsestorm\Pestle\Library\input("DANGER: Experimental Feature, might expose api endpoints.  \nPress enter to continue.");
     }
-    
+
     $moduleName              = 'Pulsestorm_Apitest2';
     $modelToSign             = 'Pulsestorm\Apitest2\Model\Thing';
     $interfaceName           = 'Pulsestorm\Apitest2\Api\Data\ThingInterface';
     $repositoryName          = 'Pulsestorm\Apitest2\Model\ThingRepository';
-    $repositoryInterfaceName = 'Pulsestorm\Apitest2\Api\ThingRepositoryInterface';    
+    $repositoryInterfaceName = 'Pulsestorm\Apitest2\Api\ThingRepositoryInterface';
     $apiEndpoint             = '/V1/pulsestorm_apitest2/things/:id';
     $resourceId              = 'anonymous';
     $properties              = [
         'id'=>'int'
     ];
-    
+
     $moduleInfo              = \Pulsestorm\Magento2\Cli\Library\getModuleInformation($moduleName);
-    
-        
-    generateDiConfigurations($moduleName, $repositoryInterfaceName, 
-        $repositoryName, $interfaceName, $modelToSign);        
-    
-    generateWebApiXml($moduleInfo, $apiEndpoint, $repositoryInterfaceName, $resourceId);    
+
+
+    generateDiConfigurations($moduleName, $repositoryInterfaceName,
+        $repositoryName, $interfaceName, $modelToSign);
+
+    generateWebApiXml($moduleInfo, $apiEndpoint, $repositoryInterfaceName, $resourceId);
     generateRepositoryClassAndInterface($moduleInfo, $repositoryName, $repositoryInterfaceName, $interfaceName, $modelToSign);
     generateClassAndInterface($modelToSign, $interfaceName, $properties);
-    
-    //output("@TODO: need di.xml");        
+
+    //output("@TODO: need di.xml");
     //output("@TODO: Naming classes with one word per namespace leaves not very expressive base names when using PHP 5.3 namespaces and class imports.");
-    //output("@TODO: The PHPDoc annotation {@inheritdoc} is only noise");    
-    //output("@TODO: In the ThingInterface the setter argument type should be specified using a @param annotation.");    
+    //output("@TODO: The PHPDoc annotation {@inheritdoc} is only noise");
+    //output("@TODO: In the ThingInterface the setter argument type should be specified using a @param annotation.");
     //output("@TODO: Personally I think returning void from a setter is more appropriate than returning $this, if the expectation is that the object state is changed.");
-    //output("@TODO: I think it would be good if ThingRepositoryInterface::get() would take an $id parameter.");        
-    //output("@TODO: The etc/di.xml file should also contain a <preference> mapping the ThingInterface to the Thing implementation.");    
+    //output("@TODO: I think it would be good if ThingRepositoryInterface::get() would take an $id parameter.");
+    //output("@TODO: The etc/di.xml file should also contain a <preference> mapping the ThingInterface to the Thing implementation.");
     //output("@TODO: The class property \$id is declared dynamically. According to current \"best practice\" it should be declared as a class property using one of the visibility keywords, like");
-    
-    //output("@TODO: the repository should have a \Pulsestorm\Apitest2\Api\Data\ThingInterfaceFactory as constructor dependency");        
+
+    //output("@TODO: the repository should have a \Pulsestorm\Apitest2\Api\Data\ThingInterfaceFactory as constructor dependency");
     \Pulsestorm\Pestle\Library\output("@TODO: Make this work with actual arguments");
     \Pulsestorm\Pestle\Library\output("@TODO: Decide what crud generation should do vs. this should do");
-    \Pulsestorm\Pestle\Library\output("@TODO: Attempt to extract interface name from generated model?");                    
+    \Pulsestorm\Pestle\Library\output("@TODO: Attempt to extract interface name from generated model?");
     \Pulsestorm\Pestle\Library\output("@TODO: What to do it repository already exists");
     \Pulsestorm\Pestle\Library\output("@TODO: Attempt to extract fields from schema file? Or seperate command?");
-    \Pulsestorm\Pestle\Library\output("@TODO: Base repository inimplemention (and webapi.xml URLs to match?)");    
+    \Pulsestorm\Pestle\Library\output("@TODO: Base repository inimplemention (and webapi.xml URLs to match?)");
 
-    
+
     // output("@TODO: Generate Repository");
-    // output("@TODO: Generate Interface");        
-    // output("@TODO: generate accessors on data interface");    
+    // output("@TODO: Generate Interface");
+    // output("@TODO: generate accessors on data interface");
     //output("@TODO: the data model implementing the Api Data interface should not be the regular ORM model, but rather a separate data model as can be seen in the customer module,");
 }
 }
@@ -10862,13 +10862,13 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 function apply_column_headers($data)
 {
     static $headers = false;
-    $headers = !$headers ? array_keys(array_flip($data)) : $headers;		
-    
+    $headers = !$headers ? array_keys(array_flip($data)) : $headers;
+
     for($i=0;$i<count($headers);$i++)
     {
         $data[$headers[$i]] = $data[$i];
     }
-    
+
     foreach($data as $key=>$value)
     {
         if(is_numeric($key))
@@ -10897,10 +10897,10 @@ function file_get_contents_csv($filename,$has_headers=true)
         {
             $all[] 	= $data;
         }
-        
+
     }
-    fclose($file);	
-    
+    fclose($file);
+
     return $all;
 }
 
@@ -10911,10 +10911,10 @@ function parseDescription($string)
     ];
 //     preg_match('%\d\d\d-\d\d\d-\d\d\d\d%', $string, $matches);
 //     $phone = array_pop($matches);
-//     
-//     $state = 
+//
+//     $state =
 }
-	
+
 /**
 * BETA: Parses Citicard's CSV files into yaml
 *
@@ -10936,7 +10936,7 @@ function pestle_cli($argv)
             continue;
         }
         // 120-Paid On 03/10/2016:028.28 Do it Best Hardware
-        \Pulsestorm\Pestle\Library\output($count,'-Paid On ', $item['Date'],':',$item['Debit'], 
+        \Pulsestorm\Pestle\Library\output($count,'-Paid On ', $item['Date'],':',$item['Debit'],
             ' ', $description);
         $count++;
     }
@@ -10954,7 +10954,7 @@ use Faker;
 *
 * @command faker:names
 * @argument how_many How many names? [10]
-* @option domain Domain name for email address 
+* @option domain Domain name for email address
 */
 function pestle_cli($argv, $options)
 {
@@ -10991,7 +10991,7 @@ function isPhar($path)
     return strpos($contents, '__HALT_COMPILER') !== false;
 }
 function validateLocalPharPath($path)
-{    
+{
     if(!isPhar($path))
     {
         \Pulsestorm\Pestle\Library\output("$path doesn't look like a phar -- can't update.");
@@ -11019,7 +11019,7 @@ function backupCurrent($path)
         exit(1);
     }
     \Pulsestorm\Pestle\Library\output("Backed up current pestle to $pathBackup");
-    return $pathBackup;    
+    return $pathBackup;
 }
 
 /**
@@ -11028,18 +11028,18 @@ function backupCurrent($path)
 */
 function pestle_cli()
 {
-    $localPharPath = getLocalPharPath();    
+    $localPharPath = getLocalPharPath();
     $tmpFile       = fetchCurrentAndWriteToTemp();
-    
-    validateLocalPharPath($localPharPath);      
-    backupCurrent($localPharPath);    
-    
+
+    validateLocalPharPath($localPharPath);
+    backupCurrent($localPharPath);
+
     //super gross -- thanks PHP
     $permissions = substr(sprintf('%o', fileperms($localPharPath)),-4);
-    
+
     \Pulsestorm\Pestle\Library\output("Replaced $localPharPath");
     rename($tmpFile, $localPharPath);
-    
+
     chmod($localPharPath, octdec($permissions));
 }
 }
@@ -11060,7 +11060,7 @@ function tokenIsSemiColonAndNextTokenIsNotTCloseTag($tokens, $key)
     {
         return false;
     }
-    
+
     if($current_token->token_value === ';' && $next_token->token_name !== 'T_CLOSE_TAG')
     {
         return true;
@@ -11080,10 +11080,10 @@ function pestle_cli($argv)
     define('START', 0);
     define('PARSE_IF', 1);
     define('INSIDE_IF_BLOCK', 2);
-    
+
     $file = $argv['file'];
-    $tokens = \Pulsestorm\Cli\Token_Parse\pestle_token_get_all(file_get_contents($file));    
-    
+    $tokens = \Pulsestorm\Cli\Token_Parse\pestle_token_get_all(file_get_contents($file));
+
     //remove whitespace tokens
     $tokens = array_filter($tokens, function($token){
         return $token->token_name !== 'T_WHITESPACE';
@@ -11096,48 +11096,48 @@ function pestle_cli($argv)
     {
         $before = '';
         $after  = '';
-        
+
         //state switching
         if($token->token_name == 'T_IF')
         {
             $state = PARSE_IF;
         }
-        
+
         if($state == PARSE_IF && $token->token_value === ':')
         {
             $indent_level++;
             $state = INSIDE_IF_BLOCK;
         }
-        
+
         if($state == INSIDE_IF_BLOCK && $token->token_name === 'T_ENDIF')
         {
             $state = START;
             $indent_level--;
         }
-                        
+
         //manipuate extra output tokens
         if($token->token_value === '{')
         {
             $indent_level++;
             $after = "\n" . str_repeat("    ", $indent_level);
         }
-        
+
         if($token->token_value === '}')
         {
-            $indent_level--;        
+            $indent_level--;
             $after = "\n" . str_repeat("    ", $indent_level);
-        }        
-        
+        }
+
         if($token->token_name === 'T_CLOSE_TAG')
         {
-            $after = "\n" . str_repeat("    ", $indent_level);       
+            $after = "\n" . str_repeat("    ", $indent_level);
         }
-        
+
         if(tokenIsSemiColonAndNextTokenIsNotTCloseTag($tokens, $key))
         {
-            $after = "\n" . str_repeat("    ", $indent_level);       
+            $after = "\n" . str_repeat("    ", $indent_level);
         }
-        
+
         if($token->token_name === 'T_INLINE_HTML' && !trim($token->token_value))
         {
             continue;
@@ -11145,7 +11145,7 @@ function pestle_cli($argv)
         //do output
         echo $before;
         echo $token->token_value;
-        echo $after;        
+        echo $after;
     }
 }
 }
@@ -12145,11 +12145,11 @@ function generateInstallSchemaTable($table_name='', $id_prefix='', $columns=[], 
 function templateRegistrationPhp($module_name, $type='MODULE')
 {
     return '<?php
-    \Magento\Framework\Component\ComponentRegistrar::register(
-        \Magento\Framework\Component\ComponentRegistrar::'.$type.',
-        \''.$module_name.'\',
-        __DIR__
-    );';
+\Magento\Framework\Component\ComponentRegistrar::register(
+    \Magento\Framework\Component\ComponentRegistrar::'.$type.',
+    \''.$module_name.'\',
+    __DIR__
+);';
 }
 
 function createBasicClassContents($full_model_name, $method_name, $extends=false)
@@ -12357,15 +12357,15 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 function getListOfFilesInModuleFolder()
 {
-    $iterator = new AppendIterator();    
+    $iterator = new AppendIterator();
     foreach(\Pulsestorm\Pestle\Importer\getModuleFolders() as $path)
     {
         $objects = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($path), 
+            new RecursiveDirectoryIterator($path),
             RecursiveIteratorIterator::SELF_FIRST
         );
         $iterator->append($objects);
-    }    
+    }
     return $iterator;
     // return $objects;
 }
@@ -12375,11 +12375,11 @@ function includeAllModuleFiles()
     $objects = getListOfFilesInModuleFolder();
     // $path = realpath('modules/');
     // $objects = new RecursiveIteratorIterator(
-    //     new RecursiveDirectoryIterator($path), 
+    //     new RecursiveDirectoryIterator($path),
     //     RecursiveIteratorIterator::SELF_FIRST
     // );
     foreach($objects as $name => $object){
-        $info = pathinfo($name);        
+        $info = pathinfo($name);
         if($info['basename'] == 'module.php')
         {
             require_once $name;
@@ -12391,7 +12391,7 @@ function includeAllModuleFiles()
 function buildCommandList()
 {
     includeAllModuleFiles();
-    
+
     $functions = get_defined_functions();
     $lookup    = [];
     foreach($functions['user'] as $function)
@@ -12403,11 +12403,11 @@ function buildCommandList()
         $r = new ReflectionFunction($function);
         // $doc_comment        = getDocCommentAsString($function);
         $parsed_doc_command = \Pulsestorm\Pestle\Library\parseDocBlockIntoParts($r->getDocComment());
-        
-        $command = array_key_exists('command', $parsed_doc_command) 
+
+        $command = array_key_exists('command', $parsed_doc_command)
             ? $parsed_doc_command['command'] : ['pestle-none-set'];
 
-        $command = array_shift($command);            
+        $command = array_shift($command);
 
         $lookup[$command] = $r->getFilename();
     }
@@ -12432,7 +12432,7 @@ function pestle_cli($argv)
     {
         \Pulsestorm\Pestle\Library\output($command);
     }
-    
+
 }
 
 }
@@ -12457,7 +12457,7 @@ function switchDoor($doorChosen, $montysDoor)
     $doors        = [1=>1,2=>2,3=>3];
     unset($doors[$doorChosen]);
     unset($doors[$montysDoor]);
-    return array_pop($doors);    
+    return array_pop($doors);
 }
 
 function vaidateStrategyAndShouldWeKeepOurDoor($strategy)
@@ -12490,7 +12490,7 @@ function runStrategy($keepDoor, $doorChosen, $montysDoor, $strategy)
  */
 function runEndGame($winningDoor, $doorChosen)
 {
-    \Pulsestorm\Pestle\Library\output("The Winning Door:               $winningDoor");            
+    \Pulsestorm\Pestle\Library\output("The Winning Door:               $winningDoor");
     //return true if won, false if lost
     if(($winningDoor === $doorChosen))
     {
@@ -12509,8 +12509,8 @@ function getStartingGameState()
     ];
     $start[] = doorMontyReveals(
         $start[0], $start[1]);
-        
-    return $start;        
+
+    return $start;
 }
 
 function runGame($argv, $keepDoor)
@@ -12519,10 +12519,10 @@ function runGame($argv, $keepDoor)
     list($winningDoor, $doorChosen, $montysDoor) = getStartingGameState();
     \Pulsestorm\Pestle\Library\output("You have chosen door:           $doorChosen");
     \Pulsestorm\Pestle\Library\output("Monty reveals the zonk door:   $montysDoor");
-    
+
     //change or keep your door
     $doorChosen = runStrategy($keepDoor, $doorChosen, $montysDoor, $argv['strategy']);
-    
+
     //run game end state, get won/loss
     $won = runEndGame($winningDoor, $doorChosen);
     \Pulsestorm\Pestle\Library\output('');
@@ -12546,7 +12546,7 @@ function runSimulation($argv, $results, $keepDoor, $times)
             continue;
         }
         $results['lose']++;
-    }        
+    }
     return $results;
 }
 
@@ -12554,34 +12554,34 @@ function runSimulation($argv, $results, $keepDoor, $times)
 * Runs Simulation of "Monty Hall Problem"
 *
 * You have three doors.  One has a prize behind it.  The other
-* two have no prizes behind it.  You pick a door.  The game 
-* show host, Monty Hall, shows you that one of the remaining 
-* doors has no prize behind it.  
-* 
+* two have no prizes behind it.  You pick a door.  The game
+* show host, Monty Hall, shows you that one of the remaining
+* doors has no prize behind it.
+*
 * Should you switch doors?
 *
 * Assumes there's only one winning door, and that Monty will always
-* reveal a zonk door.  Also, The **New** Lets Make a Deal from the 80s (the 
-* one I'm familiar with would sometimes change this up with a 
-* "medium prize" door.  Also assumes that the door picking is completely 
-* random, and that show producers aren't using cold reading or "door forcing" 
+* reveal a zonk door.  Also, The **New** Lets Make a Deal from the 80s (the
+* one I'm familiar with would sometimes change this up with a
+* "medium prize" door.  Also assumes that the door picking is completely
+* random, and that show producers aren't using cold reading or "door forcing"
 * techniques on the contestants.  Also assumes the producers had no access
-* to the contestant to tell them which doors to pick or to not pick.  
+* to the contestant to tell them which doors to pick or to not pick.
 *
 * @command pulsestorm:monty-hall-problem
 * @argument strategy Which Strategy (keep_door|change_door)? [keep_door]
 * @argument times Run Game N Times [10000]
 */
 function pestle_cli($argv)
-{    
+{
     $results = [
         'win'=>0,
         'lose'=>0,
     ];
-    
+
     $keepDoor   = vaidateStrategyAndShouldWeKeepOurDoor($argv['strategy']);
     $times      = (int) $argv['times'];
-    
+
     $results = runSimulation($argv, $results, $keepDoor, $times);
     outputResults($results);
 }
@@ -12702,7 +12702,7 @@ function pestle_cli($argv)
 {
 //     output("@TODO: Check format in m1-to-convert (top level module folder)");
 //     output("@TODO: Check that all folders are what they say they are");
-    
+
     $cmd = "php {$argv['unirgy_path']} s={$argv['module_path']} o={$argv['desination_path']} m={$argv['m1_path']}";
     runCommand($cmd);
 }
@@ -12745,7 +12745,7 @@ function pestle_cli($argv)
     $pathM1  = $argv['path_m1'];//'m1';
     $pathM2  = $argv['path_m2'];//'m2';
     $includeEE = strToLower($argv['enterprise'])[0] === 'y' ? true : false;
-    
+
     $cmds = [
         sprintf('php %s generateClassDependency %s', $pathCmd, $pathM1),       // - Regenerate mapping/class_dependency.json and mapping/class_dependency_aggregated.json
 
@@ -12760,18 +12760,18 @@ function pestle_cli($argv)
         sprintf('php %s generateAliasMapping %s', $pathCmdMigrate, $pathM1),   // - Regenerate mapping/aliases.json
     ];
     $cmdsEE = [
-        sprintf('php %s generateAliasMappingEE %s', $pathCmdMigrate, $pathM1),   // - Regenerate mapping/aliases_ee.json    
+        sprintf('php %s generateAliasMappingEE %s', $pathCmdMigrate, $pathM1),   // - Regenerate mapping/aliases_ee.json
     ];
-    
+
     array_map(function($cmd){
         runCommand($cmd);
     }, $cmds);
-    
+
     if($includeEE)
     {
         array_map(function($cmd){
             runCommand($cmd);
-        }, $cmdsEE);    
+        }, $cmdsEE);
     }
 }
 }
@@ -12807,39 +12807,39 @@ function getWhichStep($args, $currentIndex)
 function buildCmdForMigrateModuleStructure($argv)
 {
     // var_dump($argv);
-    return 'php '              . 
-    $argv['bin_migrate'] . ' ' . 
-    'migrateModuleStructure '  . 
+    return 'php '              .
+    $argv['bin_migrate'] . ' ' .
+    'migrateModuleStructure '  .
     $argv['to_convert'] . ' '  .
     $argv['destination'];
-    
+
     // return 'Hello World';
 }
 
 function buildCmdForConvertLayout($argv)
 {
-    return 'php '              . 
-    $argv['bin_migrate'] . ' ' . 
-    'convertLayout '  . 
-    $argv['destination'];    
+    return 'php '              .
+    $argv['bin_migrate'] . ' ' .
+    'convertLayout '  .
+    $argv['destination'];
 }
 
 function buildCmdForConvertConfig($argv)
 {
-    return 'php '              . 
-    $argv['bin_migrate'] . ' ' . 
-    'convertConfig '  . 
-    $argv['destination'];    
+    return 'php '              .
+    $argv['bin_migrate'] . ' ' .
+    'convertConfig '  .
+    $argv['destination'];
 }
 
 function buildCmdForConvertPhpCode($argv)
 {
-    return 'php '              . 
-    $argv['bin_migrate'] . ' ' . 
-    'convertPhpCode '  . 
+    return 'php '              .
+    $argv['bin_migrate'] . ' ' .
+    'convertPhpCode '  .
     $argv['destination'] . ' ' .
     $argv['magento1'] . ' ' .
-    $argv['magento2'] . ' ';;    
+    $argv['magento2'] . ' ';;
 }
 
 function runCommand($cmd)
@@ -12875,21 +12875,21 @@ function pestle_cli($argv)
 
     $cmd = call_user_func(__NAMESPACE__ . '\buildCmdFor' . ucwords($argv['step']), $argv);
     runCommand($cmd);
-    
+
     // output("@TODO: Generate registration.php");
     // output("@TODO: Clean up/Comment invalid node left in config.xml");
     // output("@TODO: Element 'route': Missing child element(s). Expected is ( module ). in routes.xml files");
     // output("@TODO: controller converted to: 'class Index extends ABC\Contacts\Controller\Index;");
-    // output("@TODO: controller has empty contructor, so DI doesn't get called");    
-    // output("@TODO: controller doesn't replace loadLayout/renderLayout calls with page layout object");    
-    // output("@TODO: Added OBSOLETE to my layout handle XML file.");        
-    // output("@TODO: Didn't Covert layout handle XML file completly");        
-    // output("    @TODO: Didn't add javascript file");        
-    // output("    @TODO: Didn't add a layout='' attribute");            
-    // output("    @TODO: Didn't produce content block");  
-    // output("    @TODO: Handle based on frontName, not route name (abc_contacts_index_index)");      
-    // output("    @TODO: setTitle in wrong spot");      
-    
+    // output("@TODO: controller has empty contructor, so DI doesn't get called");
+    // output("@TODO: controller doesn't replace loadLayout/renderLayout calls with page layout object");
+    // output("@TODO: Added OBSOLETE to my layout handle XML file.");
+    // output("@TODO: Didn't Covert layout handle XML file completly");
+    // output("    @TODO: Didn't add javascript file");
+    // output("    @TODO: Didn't add a layout='' attribute");
+    // output("    @TODO: Didn't produce content block");
+    // output("    @TODO: Handle based on frontName, not route name (abc_contacts_index_index)");
+    // output("    @TODO: setTitle in wrong spot");
+
 }
 }
 namespace Pulsestorm\Paypal\Csv_To_Iif{
@@ -12910,7 +12910,7 @@ function getProcessFunctionFromFirstLine($line)
     {
         return __NAMESPACE__ . '\processStripe';
     }
-        
+
     var_dump($line);
     exit;
     throw new Exception("Unknown Process Function");
@@ -12922,7 +12922,7 @@ function joinHeadersAndValue($headers, $values)
     {
         throw new Exception("Header and value coutn don't match");
     }
-    
+
     $new = [];
     for($i=0;$i<count($headers);$i++)
     {
@@ -12940,7 +12940,7 @@ function processStripe($line)
         if((strpos($line[0],$key) !== false))
         {
             return;
-        }    
+        }
     }
     if(!$headers && $line[0] === 'Date')
     {
@@ -12956,13 +12956,13 @@ function processStripe($line)
     $iif      = str_replace('<$date$>',         $row['Date'],       $iif);
     $iif      = str_replace('<$entity$>',       $row['Name'],       $iif);
     $iif      = str_replace('<$amount$>',       trim($row['Net']),        $iif);
-    
+
     $product_title = $row['Item Title'];
     if(!$product_title)
     {
         $product_title = $row['Subject'];
     }
-    
+
     //dupe "no title" behavior
     if($product_title)
     {
@@ -12972,9 +12972,9 @@ function processStripe($line)
     {
         $iif      = str_replace('"<$product_name$>"' . "\t", '', $iif);
     }
-    
-    $iif      = str_replace('<$amount_full$>',  number_format(($row['Gross'] * -1),2), $iif);    
-    $iif      = str_replace('<$amount_fee$>',   number_format(($row['Fee'] * -1),2), $iif);        
+
+    $iif      = str_replace('<$amount_full$>',  number_format(($row['Gross'] * -1),2), $iif);
+    $iif      = str_replace('<$amount_fee$>',   number_format(($row['Fee'] * -1),2), $iif);
 
     if((int) $row['Fee'] === 0)
     {
@@ -12982,14 +12982,14 @@ function processStripe($line)
         $parts = array_filter($parts, function($item){
             return strpos($item, '"Bank Fee"') === false;
         });
-        
+
         $iif = implode("\n",$parts);
         if(strpos($iif, '"Bank Fee"') === false)
         {
             $iif = str_replace('Express Checkout Payment Received', 'Payment Received', $iif);
-        }                 
+        }
     }
-    return $iif;  
+    return $iif;
 }
 
 function processPaypal($line)
@@ -13001,7 +13001,7 @@ function processPaypal($line)
         if((strpos($line[0],$key) !== false))
         {
             return;
-        }    
+        }
     }
     if(!$headers && $line[0] === 'Date')
     {
@@ -13017,13 +13017,13 @@ function processPaypal($line)
     $iif      = str_replace('<$date$>',         $row['Date'],       $iif);
     $iif      = str_replace('<$entity$>',       $row['Name'],       $iif);
     $iif      = str_replace('<$amount$>',       trim($row['Net']),        $iif);
-    
+
     $product_title = $row['Item Title'];
     if(!$product_title)
     {
         $product_title = $row['Subject'];
     }
-    
+
     //dupe "no title" behavior
     if($product_title)
     {
@@ -13033,9 +13033,9 @@ function processPaypal($line)
     {
         $iif      = str_replace('"<$product_name$>"' . "\t", '', $iif);
     }
-    
-    $iif      = str_replace('<$amount_full$>',  number_format(($row['Gross'] * -1),2), $iif);    
-    $iif      = str_replace('<$amount_fee$>',   number_format(($row['Fee'] * -1),2), $iif);        
+
+    $iif      = str_replace('<$amount_full$>',  number_format(($row['Gross'] * -1),2), $iif);
+    $iif      = str_replace('<$amount_fee$>',   number_format(($row['Fee'] * -1),2), $iif);
 
     if((int) $row['Fee'] === 0)
     {
@@ -13043,19 +13043,19 @@ function processPaypal($line)
         $parts = array_filter($parts, function($item){
             return strpos($item, '"Bank Fee"') === false;
         });
-        
+
         $iif = implode("\n",$parts);
         if(strpos($iif, '"Bank Fee"') === false)
         {
             $iif = str_replace('Express Checkout Payment Received', 'Payment Received', $iif);
-        }                 
+        }
     }
-    return $iif;    
+    return $iif;
 }
 
 function getIifTemplate()
 {
-    $template = 'TRNS	"<$date$>"	"Paypal"	"<$entity$>"	"Express Checkout Payment Received"	<$amount$>	"<$product_name$>"	
+    $template = 'TRNS	"<$date$>"	"Paypal"	"<$entity$>"	"Express Checkout Payment Received"	<$amount$>	"<$product_name$>"
 SPL	"<$date$>"	"Sales-Software"	"<$entity$>"	<$amount_full$>
 SPL	"<$date$>"	"Bank Fee"	Fee	<$amount_fee$>
 ENDTRNS';
@@ -13079,7 +13079,7 @@ function pestle_cli($argv)
         if(!$process_function)
         {
             $process_function = getProcessFunctionFromFirstLine($line);
-        }        
+        }
         $iifs[] = call_user_func($process_function, $line);
     }
     $iifs = array_filter($iifs);
@@ -13100,10 +13100,10 @@ function generateText($text, $widthInInches, $heightInInches)
 {
     $trueLeft   = 17;
     $trueTop    = 770;
-    
+
     $lessX      = 19;   //unsure why these are needed, but they are?
     $moreY      = 20;   //unsuer why these are needed, but they are?
-    
+
     $left   = ($trueLeft + round($widthInInches * 72)) - $lessX;
     $top    = ($trueTop - round($heightInInches * 72)) + $moreY;
     //$string = '500 707 moveto
@@ -13123,7 +13123,7 @@ function getWordsFromAmount($amount)
     $parts = explode('.', $amount);
     $nw = new \Numbers_Words;
     $ret = ucwords($nw->toWords($parts[0],"en_US")) . ' and ' . $parts[1] . '/100';
-    return $ret; 
+    return $ret;
 }
 
 function getCheckPostScript($date, $amount, $to, $accountFrom, $addressOne, $addressTwo)
@@ -13131,29 +13131,29 @@ function getCheckPostScript($date, $amount, $to, $accountFrom, $addressOne, $add
     $amount = formatAmount($amount);
     $words = getWordsFromAmount($amount);
     $texts = [
-        /* fold 1 */    
-        [$date,    (6 + (15/16) + (5/72)), (0 + (7/8) + (5/72))],        
-        [$amount,    (6 + (15/16) + (3/72)), (1 + (7/16) + (2/72))],        
-        [$to,  (1 + (3/16)), (1 + (7/16))],                        
-        [$words,  
-            (0 + (8/16) + (2/72)), (1 + (12/16) + (2/72))],                        
-        [$to,  (0 + (16/16) + (2/72)), (2 + (1/16) + (2/72))],                        
-        [$addressOne,  (0 + (16/16) + (2/72)), (2 + (4/16) + (2/72))],         
-        [$addressTwo,  (0 + (16/16) + (2/72)), (2 + (7/16) + (0/72))],                 
-        
-        /* fold 2 */    
-        [$to,  (0 + (13/16) + (3/72)), (3 + (15/16))],                 
-        [$date,  (6 + (0/16) + (3/72)), (3 + (15/16))],                         
-        [$amount,  (7 + (4/16) + (4/72)), (4 + (1/16) + (3/72))],                         
-        [$accountFrom,  (0 + (8/16) + (2/72)), (6 + (12/16) + (2/72))],                         
-        [$amount,  (7 + (4/16) + (4/72)), (6 + (12/16) + (2/72))],       
-                                                  
-        /* fold 3 */            
-        [$to,  (0 + (13/16) + (3/72)), (6 + (17/16) + (27/72))],                 
-        [$date,  (6 + (0/16) + (3/72)), (6 + (17/16) + (27/72))],                         
-        [$amount,  (7 + (4/16) + (4/72)), (7 + (3/16) + (30/72))],                         
-        [$accountFrom,  (0 + (8/16) + (2/72)), (9 + (14/16) + (29/72))],                         
-        [$amount,  (7 + (4/16) + (4/72)), (9 + (14/16) + (29/72))],                       
+        /* fold 1 */
+        [$date,    (6 + (15/16) + (5/72)), (0 + (7/8) + (5/72))],
+        [$amount,    (6 + (15/16) + (3/72)), (1 + (7/16) + (2/72))],
+        [$to,  (1 + (3/16)), (1 + (7/16))],
+        [$words,
+            (0 + (8/16) + (2/72)), (1 + (12/16) + (2/72))],
+        [$to,  (0 + (16/16) + (2/72)), (2 + (1/16) + (2/72))],
+        [$addressOne,  (0 + (16/16) + (2/72)), (2 + (4/16) + (2/72))],
+        [$addressTwo,  (0 + (16/16) + (2/72)), (2 + (7/16) + (0/72))],
+
+        /* fold 2 */
+        [$to,  (0 + (13/16) + (3/72)), (3 + (15/16))],
+        [$date,  (6 + (0/16) + (3/72)), (3 + (15/16))],
+        [$amount,  (7 + (4/16) + (4/72)), (4 + (1/16) + (3/72))],
+        [$accountFrom,  (0 + (8/16) + (2/72)), (6 + (12/16) + (2/72))],
+        [$amount,  (7 + (4/16) + (4/72)), (6 + (12/16) + (2/72))],
+
+        /* fold 3 */
+        [$to,  (0 + (13/16) + (3/72)), (6 + (17/16) + (27/72))],
+        [$date,  (6 + (0/16) + (3/72)), (6 + (17/16) + (27/72))],
+        [$amount,  (7 + (4/16) + (4/72)), (7 + (3/16) + (30/72))],
+        [$accountFrom,  (0 + (8/16) + (2/72)), (9 + (14/16) + (29/72))],
+        [$amount,  (7 + (4/16) + (4/72)), (9 + (14/16) + (29/72))],
     ];
 
     $postScripts = [];
@@ -13161,16 +13161,16 @@ function getCheckPostScript($date, $amount, $to, $accountFrom, $addressOne, $add
     {
         $postScripts[] = generateText($text[0], $text[1], $text[2]);
     }
-    
+
     $string = '%!PS' . "\n";
     $string .= ( '<< /PageSize [612 792] >> setpagedevice
 /Helvetica              % name the desired font
-11 selectfont           % choose the size in points and establish 
+11 selectfont           % choose the size in points and establish
                         % the font as the current one
 
-');                        
+');
     $string .= ( implode("\n", $postScripts) . "\n");
-    $string .= ( 'showpage                % print all on the page');  
+    $string .= ( 'showpage                % print all on the page');
     return $string;
 }
 
@@ -13191,11 +13191,11 @@ function pestle_cli($argv)
     extract($argv);
     $postscript = getCheckPostScript($check_date, $amount, $to, $from_account,
         $address1, $address2);
-        
+
     if($output === 'STDOUT')
     {
-        \Pulsestorm\Pestle\Library\output($postscript);        
-    }        
+        \Pulsestorm\Pestle\Library\output($postscript);
+    }
     file_put_contents($output, $postscript);
 }
 }
@@ -13207,7 +13207,7 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 function getTableNames($pdo)
 {
-    $result = $pdo->query('SHOW TABLES');        
+    $result = $pdo->query('SHOW TABLES');
     $tables = [];
     foreach($result as $row)
     {
@@ -13219,14 +13219,14 @@ function getTableNames($pdo)
 function extractForeignKeyLinesFromCreateTable($string)
 {
     $lines = preg_split('%[\r\n]%', $string);
-    $lines = array_filter($lines, function($line){ 
-        return strpos($line, 'FOREIGN KEY') !== false && 
+    $lines = array_filter($lines, function($line){
+        return strpos($line, 'FOREIGN KEY') !== false &&
             strpos($line, 'CONSTRAINT') !== -1;;
         return false;
     });
-    if(!$lines) 
+    if(!$lines)
     {
-        return array();        
+        return array();
     }
     return $lines;
 }
@@ -13239,7 +13239,7 @@ function extractForeignKey($pdo, $table)
         $create = $row['Create Table'];
     }
     $lines = extractForeignKeyLinesFromCreateTable($create);
-    
+
     $keys = array_map(function($line){
         preg_match('%\s+CONSTRAINT `([^`]*)` FOREIGN KEY \(`([^`]*)`\) '
         . 'REFERENCES (`[^`]*\.)?`([^`]*)` \(`([^`]*)`\)'
@@ -13252,7 +13252,7 @@ function extractForeignKey($pdo, $table)
             'points-to-table'   => $match[4],
             'points-to-column'  => $match[5],
             'on-delete'         => isset($match[6]) ? $match[7] : '',
-            'on-update'         => isset($match[8]) ? $match[9] : ''            
+            'on-update'         => isset($match[8]) ? $match[9] : ''
         ];
     }, $lines);
 
@@ -13265,7 +13265,7 @@ function extractForeignKeys($pdo, $tables)
     foreach($tables as $table)
     {
         $tablesWithKeysAndKeys[$table] = extractForeignKey($pdo, $table);
-    }    
+    }
     $tablesWithKeysAndKeys = array_filter($tablesWithKeysAndKeys);
     return $tablesWithKeysAndKeys;
 }
@@ -13290,16 +13290,16 @@ function scanForInvalidData($pdo, $tablesToForeignKeys)
                     '.$table.'
                 WHERE
                     ' . $table . '.' . $keyInfo['column-name'] . ' IS NOT NULL AND
-                    ' . $table . '.' . $keyInfo['column-name'] . ' NOT IN 
-                        (SELECT ' . $pointsToTable . 
-                                '.' . $keyInfo['points-to-column'] . ' 
-                            FROM ' . $pointsToTable . ' 
-                            WHERE ' . $pointsToTable . '.' . 
+                    ' . $table . '.' . $keyInfo['column-name'] . ' NOT IN
+                        (SELECT ' . $pointsToTable .
+                                '.' . $keyInfo['points-to-column'] . '
+                            FROM ' . $pointsToTable . '
+                            WHERE ' . $pointsToTable . '.' .
                                 $keyInfo['points-to-column'] . ' IS NOT NULL)';
-            
+
             $result = $pdo->query($sql);
             $reportKey = "$table.{$keyInfo['column-name']} points to $pointsToTable.{$keyInfo['points-to-column']}";
-            
+
             $report[$reportKey] = [
                 'count'=>$result->rowCount(),
                 'query'=>$sql
@@ -13355,14 +13355,14 @@ function pestle_cli($argv, $options)
     $schema     = $argv['schema'];
 
     $password = \Pulsestorm\Pestle\Library\inputPassword('MySQL Password: ');
-    
+
     $pdo = new \PDO(
         'mysql:host='.$server.';dbname='.$schema, $username, $password);
 
-    $tables = getTableNames($pdo);        
+    $tables = getTableNames($pdo);
     $tablesToForeignKeys = extractForeignKeys($pdo, $tables);
     $tablesToForeignKeys = scanForInvalidData($pdo, $tablesToForeignKeys);
-    
+
     \Pulsestorm\Pestle\Library\output('');
     reportOnBadRows($tablesToForeignKeys);
     if($options['use-sql-report'] !== null)
@@ -13388,7 +13388,7 @@ function handleException($e)
 * Sends a text message
 *
 * @command nexmo:send-text
-* @argument to Send to phone number? 
+* @argument to Send to phone number?
 * @argument from From phone number? [12155167753]
 * @argument text Text to send? [You are the best!]
 */
@@ -13402,12 +13402,12 @@ function pestle_cli($argv)
             'to'   => $argv['to'],
             'from' => $argv['from'],
             'text' => $argv['text']
-        ]);    
+        ]);
     }
     catch(Exception $e)
     {
         handleException($e);
-    }        
+    }
     if($message)
     {
         \Pulsestorm\Pestle\Library\output($message->getResponseData());
@@ -13430,7 +13430,7 @@ function sendVerifyVerification($client, $verificationRequestId, $code)
         $result = $clientVerify->check(
             $verificationRequestId,
             $code
-        );    
+        );
     }
     catch(\Exception $e)
     {
@@ -13467,8 +13467,8 @@ function getClient()
 {
     $data = readFromCredentialFile();
     $key = $data->key;
-    $secret = $data->secret;    
-    $client = new \Nexmo\Client(new \Nexmo\Client\Credentials\Basic($key, $secret));    
+    $secret = $data->secret;
+    $client = new \Nexmo\Client(new \Nexmo\Client\Credentials\Basic($key, $secret));
     return $client;
 }
 
@@ -13493,7 +13493,7 @@ function readFromCredentialFile()
     {
         $o = new stdClass;
     }
-    
+
     return $o;
 }
 
@@ -13517,7 +13517,7 @@ function pestle_cli($argv)
     $data           = readFromCredentialFile();
     $data->key      = $argv['key'];
     $data->secret   = $argv['password'];
-    writeToCredentialFile($data);    
+    writeToCredentialFile($data);
 }
 }
 namespace Pulsestorm\Nexmo\Verifyrequest{
@@ -13534,13 +13534,13 @@ function handleException($e)
 }
 
 function sendVerifyRequest($client, $number, $brand)
-{    
-    $clientVerify   = $client->verify();    
+{
+    $clientVerify   = $client->verify();
     $verification   = [
         'number' => $number,
-        'brand'  => $brand        
-    ];        
-    
+        'brand'  => $brand
+    ];
+
     $response = false;
     try
     {
@@ -13564,12 +13564,12 @@ function pestle_cli($argv)
 {
     $client = \Pulsestorm\Nexmo\Storecredentials\getClient();
     $verifyRequestResponse = sendVerifyRequest(
-        $client, $argv['to'], $argv['brand']);    
+        $client, $argv['to'], $argv['brand']);
     if($verifyRequestResponse)
     {
-        $json = $verifyRequestResponse->getResponseData();    
-        \Pulsestorm\Pestle\Library\output($json);    
-    }        
+        $json = $verifyRequestResponse->getResponseData();
+        \Pulsestorm\Pestle\Library\output($json);
+    }
 }
 }
 namespace Pulsestorm\Pestle\Config{
@@ -13719,8 +13719,8 @@ function getSymfonyConsoleBaseUse()
     return '
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;    
-';    
+use Symfony\Component\Console\Output\OutputInterface;
+';
 }
 
 function getSymfonyConsoleBaseBody()
@@ -13734,34 +13734,34 @@ function getSymfonyConsoleBaseBody()
     protected function execute(InputInterface $input, OutputInterface $output)
     {
 
-    }    
-';    
+    }
+';
 }
 
 function getFunctionBodiesFromCommandModueContents($contents)
 {
-    $functions     = \Pulsestorm\Cli\Token_Parse\getFunctionNamesFromCode($contents);        
+    $functions     = \Pulsestorm\Cli\Token_Parse\getFunctionNamesFromCode($contents);
     $functionNameToBody = [];
     foreach($functions as $function)
     {
         $functionName = $function->token_value;
         $functionNameToBody[$functionName] = \Pulsestorm\Cli\Token_Parse\getFunctionFromCode($contents, $functionName);
     }
-    
-    return $functionNameToBody;    
+
+    return $functionNameToBody;
 }
 
 function getPestleImportsFunctionBodiesFromContents($contents)
 {
-    $imports            = \Pulsestorm\Cli\Token_Parse\getPestleImportsFromCode($contents);    
-    $importedFunctionsToFiles   = array_combine($imports, 
+    $imports            = \Pulsestorm\Cli\Token_Parse\getPestleImportsFromCode($contents);
+    $importedFunctionsToFiles   = array_combine($imports,
         array_map(function($function){
             return \Pulsestorm\Pestle\Importer\getPathFromFunctionName($function);
-        }, $imports));    
+        }, $imports));
     $importedFunctionsToContents = array_map(function($file){
         return file_get_contents($file);
-    }, $importedFunctionsToFiles);        
-    
+    }, $importedFunctionsToFiles);
+
     $functionsFromImport = [];
     foreach($importedFunctionsToContents as $function=>$contents)
     {
@@ -13787,12 +13787,12 @@ function pestle_cli($argv)
     // $list = loadSerializedCommandListFromCache();
     $commandModule = \Pulsestorm\Pestle\Runner\loadSerializedCommandListFromCache()[$argv['command_to_export']];
     $contents      = file_get_contents($commandModule);
-        
+
     $functions              = getFunctionBodiesFromCommandModueContents($contents);
     $functionsFromImports   = getPestleImportsFunctionBodiesFromContents($contents);
-    
-    $classBody = getSymfonyConsoleBaseBody() . 
-        implode("\n\n", $functions) .                         
+
+    $classBody = getSymfonyConsoleBaseBody() .
+        implode("\n\n", $functions) .
         implode("\n\n", $functionsFromImports);
 
     $class = \Pulsestorm\Cli\Code_Generation\createClassTemplateWithUse($argv['full_class_name'], 'Command');
@@ -14223,7 +14223,7 @@ use function Pulsestorm\Pestle\Importer\pestle_import;
 
 /**
 * Generates pestle command boiler plate
-* This command creates the necessary files 
+* This command creates the necessary files
 * for a pestle command
 *
 *     pestle.phar pestle:generate_command command_name
@@ -14247,7 +14247,7 @@ function reduceFolders($folders, $pattern)
 {
     $folders = array_filter($folders, function($item) use ($pattern){
         return preg_match('%^'.$pattern.'$%',$item);
-    });    
+    });
     if(count($folders) == 0)
     {
         \Pulsestorm\Pestle\Library\exitWithErrorMessage("No 20xx folders found.");
@@ -14265,7 +14265,7 @@ function getMostRecentStaticFolder($staticFolders, $path)
         {
             $lastFolder = $folder;
             $lastTime = filemtime($path . '/' . $folder);
-        }        
+        }
     }
     return $lastFolder;
 }
@@ -14290,24 +14290,24 @@ function pestle_cli($argv)
         \Pulsestorm\Pestle\Library\exitWithErrorMessage("Remote Server must end in /");
     }
     $folders = reduceFolders(scandir($argv['base_folder']), '20\d\d');
-        
-    $path    = appendMax($argv['base_folder'], $folders);        
+
+    $path    = appendMax($argv['base_folder'], $folders);
     $dayFolders = reduceFolders(scandir($path), '\d\d');
-    
+
     $maxDay = max($dayFolders);
     $path   = $path . '/' . $maxDay;
     $staticFolders = reduceFolders(
         scandir($path), 'wp-static-html-output-1-\d{10}-');
-    
+
     $lastFolder = getMostRecentStaticFolder($staticFolders, $path);
     $path       = $path . '/' . $lastFolder . '/';
-    $cmd = ('rsync -r ' . 
+    $cmd = ('rsync -r ' .
         '-e "ssh -i '.$argv['ssh_key'].'" ' .
         $path . ' ' .
         $argv['remote_server']);
 
     \Pulsestorm\Pestle\Library\output("Running: " . $cmd);
-    \Pulsestorm\Pestle\Library\output(`$cmd`);                
+    \Pulsestorm\Pestle\Library\output(`$cmd`);
 }
 }
 namespace Pulsestorm\Xml_Library{
@@ -14318,17 +14318,17 @@ use Exception;
 */
 function pestle_cli($argv)
 {
-    
+
 }
 
 function addSchemaToXmlString($xmlString, $schema=false)
 {
-    $schema = $schema ? $schema : 
+    $schema = $schema ? $schema :
         'urn:magento:framework:Module/etc/module.xsd';
-        
+
     $xml = str_replace(
         '<config>',
-        '<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="'.$schema.'">', 
+        '<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="'.$schema.'">',
         $xmlString);
     return $xml;
 }
@@ -14368,14 +14368,14 @@ function simpleXmlAddNodesXpathWorker($xml, $path)
         if(isset($node->{$node_name}))
         {
             $is_new_node = false;
-            $node = $node->{$node_name};        
+            $node = $node->{$node_name};
         }
         else
         {
             $node = $node->addChild($node_name);
         }
-        
-        
+
+
         $attribute_string = trim(array_pop($parts),']');
         if(!$attribute_string) { continue; }
         $pairs = explode(',',$attribute_string);
@@ -14389,7 +14389,7 @@ function simpleXmlAddNodesXpathWorker($xml, $path)
             }
             $key = trim($key, '@');
             if(strpos($key, ':') !== false)
-            {                
+            {
                 list($namespace_prefix, $rest) = explode(':', $key);
                 $namespace = getXmlNamespaceFromPrefix($xml, $namespace_prefix);
                 $node->addAttribute($key, $value, $namespace);
@@ -14398,7 +14398,7 @@ function simpleXmlAddNodesXpathWorker($xml, $path)
             {
                 $node->addAttribute($key, $value);
             }
-            
+
         }
 //         exit;
     }
@@ -14429,17 +14429,17 @@ function formatXmlString($string)
 {
     $dom = new DomDocument;
     $dom->preserveWhiteSpace = false;
-    $dom->formatOutput = true;        
+    $dom->formatOutput = true;
     $dom->loadXml($string);
     $string = $dom->saveXml();
-    
+
     $string = preg_replace('%(^\s*)%m', '$1$1', $string);
-    
+
     return $string;
 }}
 namespace Pulsestorm\Phpdotnet{
 /**
-* Function found on php.net.  
+* Function found on php.net.
 * @copyright original authors
 */
 
@@ -14457,16 +14457,16 @@ if ( ! function_exists('glob_recursive'))
     /**
     * Does not support flag GLOB_BRACE
     * http://php.net/manual/en/function.glob.php#106595
-    */    
+    */
     function glob_recursive($pattern, $flags = 0)
     {
         $files = glob($pattern, $flags);
-        
+
         foreach (glob(dirname($pattern).'/*', GLOB_ONLYDIR|GLOB_NOSORT) as $dir)
         {
             $files = array_merge($files, glob_recursive($dir.'/'.basename($pattern), $flags));
         }
-        
+
         return $files;
     }
 }

@@ -212,11 +212,11 @@ function generateInstallSchemaTable($table_name='', $id_prefix='', $columns=[], 
 function templateRegistrationPhp($module_name, $type='MODULE')
 {
     return '<?php
-    \Magento\Framework\Component\ComponentRegistrar::register(
-        \Magento\Framework\Component\ComponentRegistrar::'.$type.',
-        \''.$module_name.'\',
-        __DIR__
-    );';
+\Magento\Framework\Component\ComponentRegistrar::register(
+    \Magento\Framework\Component\ComponentRegistrar::'.$type.',
+    \''.$module_name.'\',
+    __DIR__
+);';
 }
 
 function createBasicClassContents($full_model_name, $method_name, $extends=false)
