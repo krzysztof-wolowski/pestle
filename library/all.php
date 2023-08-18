@@ -6747,9 +6747,9 @@ function pestle_cli($argv, $options)
     }
     $path_plugin = \Pulsestorm\Magento2\Cli\Path_From_Class\getPathFromClass($class_plugin);
     $body = implode("\n", [
-        '    //function beforeMETHOD(' . $typeHint . '$subject, $arg1, $arg2){}',
-        '    //function aroundMETHOD(' . $typeHint . '$subject, $proceed, $arg1, $arg2){return $proceed($arg1, $arg2);}',
-        '    //function afterMETHOD(' . $typeHint . '$subject, $result){return $result;}']);
+        '    //public function beforeMETHOD(' . $typeHint . '$subject, $arg1, $arg2){}',
+        '    //public function aroundMETHOD(' . $typeHint . '$subject, $proceed, $arg1, $arg2){return $proceed($arg1, $arg2);}',
+        '    //public function afterMETHOD(' . $typeHint . '$subject, $result){return $result;}']);
     $class_definition = str_replace('<$body$>', "\n$body\n", \Pulsestorm\Cli\Code_Generation\createClassTemplate($class_plugin));
     \Pulsestorm\Pestle\Library\writeStringToFile($path_plugin, $class_definition);
     \Pulsestorm\Pestle\Library\output("Created file $path_plugin");

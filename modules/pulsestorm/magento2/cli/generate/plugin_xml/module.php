@@ -15,7 +15,7 @@ pestle_import('Pulsestorm\Xml_Library\simpleXmlAddNodesXpath');
 
 
 function getDiXmlTemplate($config_attributes='xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd"')
-{   
+{
     if(!$config_attributes)
     {
         $config_attributes = 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd"';
@@ -36,11 +36,11 @@ function underscoreClass($class)
 
 /**
 * Generates plugin XML
-* This command generates the necessary files and configuration 
-* to "plugin" to a preexisting Magento 2 object manager object. 
+* This command generates the necessary files and configuration
+* to "plugin" to a preexisting Magento 2 object manager object.
 *
 *     pestle.phar generate_plugin_xml Pulsestorm_Helloworld 'Magento\Framework\Logger\Monolog' 'Pulsestorm\Helloworld\Plugin\Magento\Framework\Logger\Monolog'
-* 
+*
 * @argument module_name Create in which module? [Pulsestorm_Helloworld]
 * @argument class Which class are you plugging into? [Magento\Framework\Logger\Monolog]
 * @argument class_plugin What's your plugin class name? [<$module_name$>\Plugin\<$class$>]
@@ -58,38 +58,38 @@ function pestle_cli($argv, $options)
     $path_di = $module_info->folder . '/etc/di.xml';
     if(!file_exists($path_di))
     {
-        $xml =  simplexml_load_string(getBlankXml('di'));           
+        $xml =  simplexml_load_string(getBlankXml('di'));
         writeStringToFile($path_di, $xml->asXml());
         output("Created new $path_di");
     }
-    
+
     $class = ltrim($class, '\\');
-    
-    $xml            =  simplexml_load_file($path_di);   
+
+    $xml            =  simplexml_load_file($path_di);
 //     $plugin_name    = strToLower($module_info->name) . '_' . underscoreClass($class);
 //     simpleXmlAddNodesXpath($xml,
 //         "/type[@name=$class]/plugin[@name=$plugin_name,@type=$class_plugin]");
-             
+
     $type = $xml->addChild('type');
     $type->addAttribute('name', $class);
     $plugin = $type->addChild('plugin');
-    
+
     $plugin->addAttribute('name',strToLower($module_info->name) . '_' . underscoreClass($class));
     $plugin->addAttribute('type',$class_plugin);
-    
+
     writeStringToFile($path_di, formatXmlString($xml->asXml()));
     output("Added nodes to $path_di");
-    
+
     $typeHint = '';
     if($useTypeHint)
     {
         $typeHint = '\\' . $class . ' ';
     }
-    $path_plugin = getPathFromClass($class_plugin);  
+    $path_plugin = getPathFromClass($class_plugin);
     $body = implode("\n", [
-        '    //function beforeMETHOD(' . $typeHint . '$subject, $arg1, $arg2){}',
-        '    //function aroundMETHOD(' . $typeHint . '$subject, $proceed, $arg1, $arg2){return $proceed($arg1, $arg2);}',
-        '    //function afterMETHOD(' . $typeHint . '$subject, $result){return $result;}']);
+        '    //public function beforeMETHOD(' . $typeHint . '$subject, $arg1, $arg2){}',
+        '    //public function aroundMETHOD(' . $typeHint . '$subject, $proceed, $arg1, $arg2){return $proceed($arg1, $arg2);}',
+        '    //public function afterMETHOD(' . $typeHint . '$subject, $result){return $result;}']);
     $class_definition = str_replace('<$body$>', "\n$body\n", createClassTemplate($class_plugin));
     writeStringToFile($path_plugin, $class_definition);
     output("Created file $path_plugin");

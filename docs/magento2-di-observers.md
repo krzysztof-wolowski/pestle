@@ -126,9 +126,9 @@ $ cat app/code/Pulsestorm/Pestle/Plugin/Magento/Product.php
 namespace Pulsestorm\Pestle\Plugin\Magento;
 class Product
 {
-    //function beforeMETHOD($subject, $arg1, $arg2){}
-    //function aroundMETHOD($subject, $proceed, $arg1, $arg2){return $proceed($arg1, $arg2);}
-    //function afterMETHOD($subject, $result){return $result;}
+    //public function beforeMETHOD($subject, $arg1, $arg2){}
+    //public function aroundMETHOD($subject, $proceed, $arg1, $arg2){return $proceed($arg1, $arg2);}
+    //public function afterMETHOD($subject, $result){return $result;}
 }
 ```
 
@@ -144,9 +144,9 @@ $ cat app/code/Pulsestorm/Pestle/Plugin/Magento/Product.php
 namespace Pulsestorm\Pestle\Plugin\Magento;
 class Product
 {
-    //function beforeMETHOD(\Magento\Catalog\Model\Product $subject, $arg1, $arg2){}
-    //function aroundMETHOD(\Magento\Catalog\Model\Product $subject, $proceed, $arg1, $arg2){return $proceed($arg1, $arg2);}
-    //function afterMETHOD(\Magento\Catalog\Model\Product $subject, $result){return $result;}
+    //public function beforeMETHOD(\Magento\Catalog\Model\Product $subject, $arg1, $arg2){}
+    //public function aroundMETHOD(\Magento\Catalog\Model\Product $subject, $proceed, $arg1, $arg2){return $proceed($arg1, $arg2);}
+    //public function afterMETHOD(\Magento\Catalog\Model\Product $subject, $result){return $result;}
 }
 ```
 
