@@ -122,8 +122,17 @@ function formatXmlString($string)
     $dom->loadXml($string);
     $string = $dom->saveXml();
 
+    $replace = [
+        '/<config xmlns:xsi="([^"]+)" xsi:noNamespaceSchemaLocation="([^"]+)">/'
+        => "<config xmlns:xsi=\"$1\"\n        xsi:noNamespaceSchemaLocation=\"$2\">",
+    ];
+
     $string = preg_replace('%(^\s*)%m', '$1$1', $string);
     $string = str_replace('xml version="1.0"', "xml version='1.0'", $string);
+
+    foreach ($replace as $pattern => $replacement) {
+        $string = preg_replace($pattern, $replacement, $string);
+    }
 
     return $string;
 }
