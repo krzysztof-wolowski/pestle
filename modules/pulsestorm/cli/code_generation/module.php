@@ -288,7 +288,8 @@ function createClassTemplate($class, $extends=false, $implements=false, $include
     ' */';
 
     $template = '<' . '?' . 'php' . "\n" .
-    'namespace ' . implode('\\',$parts) . ";\n";
+        'declare(strict_types=1);' . "\n\n" .
+        'namespace ' . implode('\\',$parts) . ";\n";
     $template .= "\n";
 
     if($includeUse)
