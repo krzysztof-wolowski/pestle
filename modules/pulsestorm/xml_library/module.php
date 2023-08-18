@@ -7,17 +7,17 @@ use Exception;
 */
 function pestle_cli($argv)
 {
-    
+
 }
 
 function addSchemaToXmlString($xmlString, $schema=false)
 {
-    $schema = $schema ? $schema : 
+    $schema = $schema ? $schema :
         'urn:magento:framework:Module/etc/module.xsd';
-        
+
     $xml = str_replace(
         '<config>',
-        '<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="'.$schema.'">', 
+        '<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="'.$schema.'">',
         $xmlString);
     return $xml;
 }
@@ -57,14 +57,14 @@ function simpleXmlAddNodesXpathWorker($xml, $path)
         if(isset($node->{$node_name}))
         {
             $is_new_node = false;
-            $node = $node->{$node_name};        
+            $node = $node->{$node_name};
         }
         else
         {
             $node = $node->addChild($node_name);
         }
-        
-        
+
+
         $attribute_string = trim(array_pop($parts),']');
         if(!$attribute_string) { continue; }
         $pairs = explode(',',$attribute_string);
@@ -78,7 +78,7 @@ function simpleXmlAddNodesXpathWorker($xml, $path)
             }
             $key = trim($key, '@');
             if(strpos($key, ':') !== false)
-            {                
+            {
                 list($namespace_prefix, $rest) = explode(':', $key);
                 $namespace = getXmlNamespaceFromPrefix($xml, $namespace_prefix);
                 $node->addAttribute($key, $value, $namespace);
@@ -87,7 +87,7 @@ function simpleXmlAddNodesXpathWorker($xml, $path)
             {
                 $node->addAttribute($key, $value);
             }
-            
+
         }
 //         exit;
     }
@@ -118,11 +118,12 @@ function formatXmlString($string)
 {
     $dom = new DomDocument;
     $dom->preserveWhiteSpace = false;
-    $dom->formatOutput = true;        
+    $dom->formatOutput = true;
     $dom->loadXml($string);
     $string = $dom->saveXml();
-    
+
     $string = preg_replace('%(^\s*)%m', '$1$1', $string);
-    
+    $string = str_replace('xml version="1.0"', "xml version='1.0'", $string);
+
     return $string;
 }
