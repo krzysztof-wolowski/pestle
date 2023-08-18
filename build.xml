@@ -29,10 +29,10 @@
                 <exclude name="**/phpunit/**" />
                 <exclude name="**/sebastian/**" />
                 <exclude name="**/symfony/yaml/**" />
-								<exclude name="**/zendframework/zend-diactoros/src/functions/marshal_uri_from_sapi.php" />
+								<exclude name="**/laminas/laminas-diactoros/src/functions/marshal_uri_from_sapi.php" />
             </fileset>
 		</copy>
-		<touch file="build/vendor/zendframework/zend-diactoros/src/functions/marshal_uri_from_sapi.php" />
+		<touch file="build/vendor/laminas/laminas-diactoros/src/functions/marshal_uri_from_sapi.php" />
 	</target>
 	<target name="info">
 	    <echo msg="Our default build task."/>
