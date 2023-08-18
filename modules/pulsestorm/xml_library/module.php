@@ -125,6 +125,7 @@ function formatXmlString($string)
     $replace = [
         '/<config xmlns:xsi="([^"]+)" xsi:noNamespaceSchemaLocation="([^"]+)">/'
         => "<config xmlns:xsi=\"$1\"\n        xsi:noNamespaceSchemaLocation=\"$2\">",
+        '/<plugin name="([^"]+)" type="([^"]+)"\/>/' => "<plugin name=\"$1\"\n                type=\"$2\"/>"
     ];
 
     $string = preg_replace('%(^\s*)%m', '$1$1', $string);
