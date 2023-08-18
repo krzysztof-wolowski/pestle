@@ -12149,7 +12149,8 @@ function templateRegistrationPhp($module_name, $type='MODULE')
     \Magento\Framework\Component\ComponentRegistrar::'.$type.',
     \''.$module_name.'\',
     __DIR__
-);';
+);
+';
 }
 
 function createBasicClassContents($full_model_name, $method_name, $extends=false)
